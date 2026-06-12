@@ -75,7 +75,7 @@ class WorkforceGraph:
             "WorkforceGraph",
             f"  Intent : {self.intent}",
             f"  Roles  : {len(self.nodes)}",
-            f"  Source : {self.parse_result.source} (confidence {self.parse_result.confidence:.0%})",
+            f"  Source : {self.parse_result.source}  ·  matched {len(self.nodes)} role(s)",
             "",
         ]
 
@@ -88,7 +88,7 @@ class WorkforceGraph:
                 sla_parts.append(f"max ${node.sla_max_cost:.2f}")
             sla_str = f"  SLA: {', '.join(sla_parts)}" if sla_parts else ""
             idempotent_str = "  [idempotent]" if node.idempotent else ""
-            risk_str = f"  risk={node.risk_level}"
+            risk_str = f"  risk={node.risk_level.value}"
 
             lines.append(
                 f"{prefix} {node.role}"
@@ -143,4 +143,5 @@ class WorkforceGraph:
 
     def __repr__(self) -> str:
         roles = " → ".join(self.role_names())
-        return f"WorkforceGraph({roles})"
+        confidence_pct = round(self.parse_result.confidence * 100)
+        return f"WorkforceGraph[{self.parse_result.source}:{confidence_pct}%]({roles})"

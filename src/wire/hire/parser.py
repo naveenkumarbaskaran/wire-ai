@@ -100,7 +100,7 @@ class HIREParser:
                 "or describe the intent using action verbs (monitor, analyse, create, escalate)."
             )
 
-        log.info(
+        log.debug(
             "hire_parsed",
             intent=intent[:80],
             matches=[m.template.name for m in matches],

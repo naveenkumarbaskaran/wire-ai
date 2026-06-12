@@ -106,8 +106,9 @@ def status() -> None:
     for backend, pkg in [
         ("langgraph", "langgraph"),
         ("crewai", "crewai"),
-        ("autogen", "pyautogen"),
+        ("autogen", "autogen_agentchat"),
         ("openai", "openai_agents"),
+        ("foundry", "azure.ai.agents"),
     ]:
         try:
             __import__(pkg.replace("-", "_"))

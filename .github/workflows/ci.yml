@@ -13,6 +13,7 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.11", "3.12", "3.13"]
+        # Note: Python 3.14 is not added — crewai/tiktoken lack pre-built wheels for it yet.
 
     steps:
       - uses: actions/checkout@v4
