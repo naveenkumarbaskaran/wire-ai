@@ -34,6 +34,9 @@ except ImportError:
 from wire.core.stream import StreamGuard, GuardedStream, StreamStallError, StreamCapExceededError, StreamStats
 from wire.core.durable_events import DurableEventBus, DeadLetter
 from wire.core.policy import PolicyEnforcer, PolicyViolationError, ToolCallContext
+from wire.integrations.langchain import wrap_chain, GovernedChain
+from wire.integrations.llama_index import wrap_query_engine, GovernedQueryEngine
+from wire.integrations.tool_registry import tool, tools, WIRETool, ToolRegistry
 from wire.enterprise.compliance import CompliancePreset, ComplianceConfig
 from wire.enterprise.rbac import RBACPolicy, Permission, Actor, PermissionDeniedError
 from wire.enterprise.multitenancy import Tenant, TenantRegistry
@@ -50,7 +53,7 @@ from wire.plugins import WIREPlugin, PluginRegistry, get_plugin_registry
 from wire.plugins.agentlens_plugin import AgentLensPlugin
 from wire.plugins.tokmon_plugin import TokmonPlugin
 
-__version__ = "1.4.0"
+__version__ = "1.5.0"
 __all__ = [
     # Entry points
     "deploy", "hire", "hire_async",
@@ -78,6 +81,10 @@ __all__ = [
     # Sprint 7 — Streaming governance
     "StreamGuard", "GuardedStream", "StreamStallError", "StreamCapExceededError", "StreamStats",
     "DurableEventBus", "DeadLetter",
+    # Sprint 8 — Integrations
+    "wrap_chain", "GovernedChain",
+    "wrap_query_engine", "GovernedQueryEngine",
+    "tool", "tools", "WIRETool", "ToolRegistry",
     # Sprint 6 — Enterprise
     "CompliancePreset", "ComplianceConfig",
     "RBACPolicy", "Permission", "Actor", "PermissionDeniedError",
