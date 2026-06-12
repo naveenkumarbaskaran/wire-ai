@@ -10,10 +10,10 @@
 [![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-818cf8?style=for-the-badge&labelColor=0a0520&logo=python&logoColor=818cf8)](https://www.python.org)
 [![License](https://img.shields.io/badge/license-MIT-c084fc?style=for-the-badge&labelColor=0a0520)](LICENSE)
 
-<!-- Quality + Downloads -->
+<!-- Quality + Status -->
 [![Tests](https://img.shields.io/badge/tests-409%20passed-22c55e?style=for-the-badge&labelColor=0a0520&logo=pytest&logoColor=22c55e)](#)
-[![Downloads](https://img.shields.io/pypi/dm/wire-ai?style=for-the-badge&labelColor=0a0520&color=f59e0b&logo=python&logoColor=f59e0b)](https://pypi.org/project/wire-ai)
-[![PyPI status](https://img.shields.io/pypi/status/wire-ai?style=for-the-badge&labelColor=0a0520&color=22d3ee)](https://pypi.org/project/wire-ai)
+[![Downloads](https://img.shields.io/badge/downloads-PyPI-f59e0b?style=for-the-badge&labelColor=0a0520&logo=python&logoColor=f59e0b)](https://pypi.org/project/wire-ai)
+[![Status](https://img.shields.io/badge/status-stable-22d3ee?style=for-the-badge&labelColor=0a0520)](https://pypi.org/project/wire-ai)
 
 <!-- Frameworks -->
 [![LangGraph](https://img.shields.io/badge/LangGraph-adapter-22d3ee?style=flat-square&labelColor=0a0520)](https://github.com/langchain-ai/langgraph)
