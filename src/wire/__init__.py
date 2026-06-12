@@ -18,13 +18,15 @@ from wire.core.sla import SLATracker, SLABreachError
 from wire.deploy import deploy
 from wire.hire_api import hire, hire_async
 from wire.hire.templates import RoleTemplate, RoleCategory, ROLE_TEMPLATES
+from wire.visibility.dashboard import WorkforceDashboard, AgentStatus
+from wire.visibility.drift import DriftDetector, DriftAlert
+from wire.visibility.ledger import CostLedger
+from wire.core.policy import PolicyEnforcer, PolicyViolationError, ToolCallContext
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 __all__ = [
     # Entry points
-    "deploy",
-    "hire",
-    "hire_async",
+    "deploy", "hire", "hire_async",
     # Sprint 1
     "AuditChain", "AuditEntry",
     "Budget", "BudgetBreachError",
@@ -38,4 +40,10 @@ __all__ = [
     "SLATracker", "SLABreachError",
     # Sprint 3
     "RoleTemplate", "RoleCategory", "ROLE_TEMPLATES",
+    # Sprint 4
+    "WorkforceDashboard", "AgentStatus",
+    "DriftDetector", "DriftAlert",
+    "CostLedger",
+    "TimeTravel",
+    "PolicyEnforcer", "PolicyViolationError", "ToolCallContext",
 ]
