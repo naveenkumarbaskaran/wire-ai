@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main, beta, stable]
+  pull_request:
+    branches: [main, beta, stable]
+
+jobs:
+  test:
+    name: Test (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -e ".[dev]"
+
+      - name: Run tests
+        run: python -m pytest tests/ -q --tb=short
+
+      - name: Check exports resolve
+        run: |
+          python -c "
+          import sys; sys.path.insert(0,'src')
+          import wire
+          missing = [x for x in wire.__all__
+                     if getattr(wire, x, None) is None
+                     and x not in ('WebDashboard','AgentBlueprint','BlueprintRegistry')]
+          if missing:
+              print('MISSING:', missing); sys.exit(1)
+          print(f'All {len(wire.__all__)} exports OK — version', wire.__version__)
+          "
+
+      - name: Version consistency check
+        run: |
+          PYPROJECT_VER=$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
+          INIT_VER=$(python -c "import sys; sys.path.insert(0,'src'); import wire; print(wire.__version__)")
+          if [ "$PYPROJECT_VER" != "$INIT_VER" ]; then
+            echo "Version mismatch: pyproject=$PYPROJECT_VER vs __init__=$INIT_VER"
+            exit 1
+          fi
+          echo "Version consistent: $PYPROJECT_VER"
