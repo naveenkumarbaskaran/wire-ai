@@ -37,6 +37,8 @@ from wire.core.policy import PolicyEnforcer, PolicyViolationError, ToolCallConte
 from wire.integrations.langchain import wrap_chain, GovernedChain
 from wire.integrations.llama_index import wrap_query_engine, GovernedQueryEngine
 from wire.integrations.tool_registry import tool, tools, WIRETool, ToolRegistry
+from wire.observability.event_store import EventStore, EventQuery, RunSummary
+from wire.observability.metrics import MetricsCollector, wire_metrics
 from wire.enterprise.compliance import CompliancePreset, ComplianceConfig
 from wire.enterprise.rbac import RBACPolicy, Permission, Actor, PermissionDeniedError
 from wire.enterprise.multitenancy import Tenant, TenantRegistry
@@ -53,7 +55,7 @@ from wire.plugins import WIREPlugin, PluginRegistry, get_plugin_registry
 from wire.plugins.agentlens_plugin import AgentLensPlugin
 from wire.plugins.tokmon_plugin import TokmonPlugin
 
-__version__ = "1.5.0"
+__version__ = "1.6.0"
 __all__ = [
     # Entry points
     "deploy", "hire", "hire_async",
@@ -85,6 +87,9 @@ __all__ = [
     "wrap_chain", "GovernedChain",
     "wrap_query_engine", "GovernedQueryEngine",
     "tool", "tools", "WIRETool", "ToolRegistry",
+    # Sprint 9 — Observability
+    "EventStore", "EventQuery", "RunSummary",
+    "MetricsCollector", "wire_metrics",
     # Sprint 6 — Enterprise
     "CompliancePreset", "ComplianceConfig",
     "RBACPolicy", "Permission", "Actor", "PermissionDeniedError",
