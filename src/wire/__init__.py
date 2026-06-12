@@ -22,8 +22,12 @@ from wire.visibility.dashboard import WorkforceDashboard, AgentStatus
 from wire.visibility.drift import DriftDetector, DriftAlert
 from wire.visibility.ledger import CostLedger
 from wire.core.policy import PolicyEnforcer, PolicyViolationError, ToolCallContext
+from wire.enterprise.compliance import CompliancePreset, ComplianceConfig
+from wire.enterprise.rbac import RBACPolicy, Permission, Actor, PermissionDeniedError
+from wire.enterprise.multitenancy import Tenant, TenantRegistry
+from wire.enterprise.backends import S3AuditBackend, PostgresAuditBackend
 
-__version__ = "0.4.0"
+__version__ = "1.0.0"
 __all__ = [
     # Entry points
     "deploy", "hire", "hire_async",
@@ -46,4 +50,9 @@ __all__ = [
     "CostLedger",
     "TimeTravel",
     "PolicyEnforcer", "PolicyViolationError", "ToolCallContext",
+    # Sprint 6 — Enterprise
+    "CompliancePreset", "ComplianceConfig",
+    "RBACPolicy", "Permission", "Actor", "PermissionDeniedError",
+    "Tenant", "TenantRegistry",
+    "S3AuditBackend", "PostgresAuditBackend",
 ]
