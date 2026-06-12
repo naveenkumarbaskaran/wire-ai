@@ -8,8 +8,11 @@ from __future__ import annotations
 
 import json
 
-import httpx
 import pytest
+
+# Skip entire module if fastapi/httpx not installed (base dev install excludes web extra)
+fastapi = pytest.importorskip("fastapi", reason="requires pip install wire-ai[web]")
+httpx = pytest.importorskip("httpx", reason="requires httpx")
 
 from wire.visibility.dashboard import WorkforceDashboard
 from wire.visibility.web_dashboard import WebDashboard, _dashboard_to_dict
