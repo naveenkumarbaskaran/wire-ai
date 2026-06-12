@@ -24,6 +24,7 @@ from wire.hire.templates import RoleTemplate, RoleCategory, ROLE_TEMPLATES
 from wire.visibility.dashboard import WorkforceDashboard, AgentStatus
 from wire.visibility.drift import DriftDetector, DriftAlert
 from wire.visibility.ledger import CostLedger
+from wire.visibility.replay import TimeTravel
 
 try:
     from wire.visibility.web_dashboard import WebDashboard
