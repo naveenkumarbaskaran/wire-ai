@@ -31,7 +31,8 @@ try:
 except ImportError:
     WebDashboard = None  # type: ignore[assignment,misc]
 
-from wire.core.policy import PolicyEnforcer, PolicyViolationError, ToolCallContext
+from wire.core.stream import StreamGuard, GuardedStream, StreamStallError, StreamCapExceededError, StreamStats
+from wire.core.durable_events import DurableEventBus, DeadLetter
 from wire.enterprise.compliance import CompliancePreset, ComplianceConfig
 from wire.enterprise.rbac import RBACPolicy, Permission, Actor, PermissionDeniedError
 from wire.enterprise.multitenancy import Tenant, TenantRegistry
@@ -48,7 +49,7 @@ from wire.plugins import WIREPlugin, PluginRegistry, get_plugin_registry
 from wire.plugins.agentlens_plugin import AgentLensPlugin
 from wire.plugins.tokmon_plugin import TokmonPlugin
 
-__version__ = "1.3.0"
+__version__ = "1.4.0"
 __all__ = [
     # Entry points
     "deploy", "hire", "hire_async",
@@ -73,6 +74,9 @@ __all__ = [
     "WebDashboard",
     "TimeTravel",
     "PolicyEnforcer", "PolicyViolationError", "ToolCallContext",
+    # Sprint 7 — Streaming governance
+    "StreamGuard", "GuardedStream", "StreamStallError", "StreamCapExceededError", "StreamStats",
+    "DurableEventBus", "DeadLetter",
     # Sprint 6 — Enterprise
     "CompliancePreset", "ComplianceConfig",
     "RBACPolicy", "Permission", "Actor", "PermissionDeniedError",

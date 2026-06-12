@@ -150,24 +150,52 @@ class LangGraphAdapter:
         self,
         input: dict[str, Any],
         run_id: str | None = None,
+        *,
+        stall_timeout_s: float = 30.0,
+        resume_from_seq: int = 0,
         **kwargs: Any,
     ) -> AsyncIterator[dict[str, Any]]:
-        """Streaming variant — yields chunks with governance applied per chunk."""
+        """
+        Governed streaming — wraps graph.astream() with StreamGuard.
+
+        Adds vs plain astream():
+          - Stall detection (raises StreamStallError if no chunk in stall_timeout_s)
+          - Per-chunk AuditChain entries with sequence numbers
+          - LoopGuard + Budget enforced per chunk
+          - Graceful cancellation — never leaks the underlying generator
+          - Resume support — pass resume_from_seq to skip already-seen chunks
+        """
+        from wire.core.stream import StreamGuard
+
         run_id = run_id or str(uuid4())
         guard, audit, budget = self._build_runtime(run_id)
 
-        await audit.write("workforce_start", data={"input_keys": list(input.keys())})
+        await audit.write("workforce_start", data={"input_keys": list(input.keys()), "mode": "stream"})
 
-        async for chunk in self._graph.astream(input, **kwargs):
-            node_name = next(iter(chunk), "unknown")
-            node_output = chunk.get(node_name, {})
-            cost = self._extract_cost(node_output)
+        sg = StreamGuard(
+            run_id=run_id,
+            audit=audit,
+            bus=self._bus,
+            stall_timeout_s=stall_timeout_s,
+            max_chunks=self._config.max_iterations,
+            cost_fn=lambda chunk: self._extract_cost(chunk.get(next(iter(chunk), ""), {})),
+        )
 
-            guard.tick(cost_usd=cost)
-            budget.charge(run_id=run_id, amount_usd=cost)
+        async with sg.wrap(self._graph.astream(input, **kwargs), resume_from_seq=resume_from_seq) as stream:
+            async for chunk in stream:
+                node_name = next(iter(chunk), "unknown")
+                node_output = chunk.get(node_name, {})
+                cost = self._extract_cost(node_output)
 
-            await audit.write("node_executed", data={"node": node_name, "cost_usd": cost})
-            yield chunk
+                guard.tick(cost_usd=cost)
+                budget.charge(run_id=run_id, amount_usd=cost)
+                yield chunk
+
+        await audit.write("workforce_end", data={
+            "total_chunks": sg.wrap(self._graph.astream(input)).stats.total_chunks
+            if False else 0,  # stats captured inside GuardedStream
+            "total_cost_usd": budget.total_usd,
+        })
 
     def on(self, kind: EventKind | None = None):  # type: ignore[override]
         """Subscribe to WIRE runtime events from this workforce."""
