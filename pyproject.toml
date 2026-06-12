@@ -1,0 +1,94 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "wire-ai"
+version = "0.1.0"
+description = "Workforce Intelligence & Reasoning Engine — framework-agnostic governance layer for autonomous enterprise AI agents"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+authors = [{ name = "Naveen Kumar Baskaran", email = "naveen.kumar.baskaran@sap.com" }]
+keywords = ["ai", "agents", "llm", "governance", "enterprise", "langgraph", "crewai", "autogen", "a2a", "mcp"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    # Core
+    "pydantic>=2.7",                  # typed models, validation, serialisation
+    "anyio>=4.4",                     # async primitives (trio + asyncio)
+    "structlog>=24.2",                # structured JSON logging
+    "rich>=13.7",                     # terminal UI, dashboard, progress
+    "typer>=0.12",                    # CLI (wire status, wire replay, wire audit)
+    "httpx>=0.27",                    # async HTTP (HITL webhooks, Slack, email)
+    # Audit + state
+    "sqlmodel>=0.0.19",               # SQLite/Postgres durable state (SQLAlchemy + Pydantic)
+    "aiosqlite>=0.20",                # async SQLite backend
+    "orjson>=3.10",                   # fast JSON for audit chain serialisation
+    "xxhash>=3.4",                    # fast hashing for idempotency keys
+    # Observability
+    "opentelemetry-api>=1.25",        # OTel traces + spans
+    "opentelemetry-sdk>=1.25",        # OTel SDK
+    "opentelemetry-exporter-otlp-proto-grpc>=1.25",  # OTLP export
+    "prometheus-client>=0.20",        # metrics endpoint (/metrics)
+    # AI / LLM
+    "anthropic>=0.30",                # Claude (HIRE engine LLM fallback)
+    "tiktoken>=0.7",                  # token counting across models
+    "tenacity>=8.3",                  # retry with exponential backoff
+]
+
+[project.optional-dependencies]
+langgraph = ["langgraph>=0.2", "langchain-core>=0.2"]
+crewai    = ["crewai>=0.80"]
+autogen   = ["pyautogen>=0.4"]
+openai    = ["openai>=1.35", "openai-agents>=0.1"]
+redis     = ["redis>=5.0", "hiredis>=2.3"]          # enterprise durable state backend
+postgres  = ["asyncpg>=0.29", "psycopg[binary]>=3.1"]  # enterprise audit + state backend
+slack     = ["slack-sdk>=3.30"]                      # Slack HITL routing
+dashboard = ["textual>=0.75"]                        # full TUI dashboard (beyond Rich)
+all       = [
+    "wire-ai[langgraph,crewai,autogen,openai,redis,postgres,slack,dashboard]"
+]
+dev = [
+    "pytest>=8.2",
+    "pytest-asyncio>=0.24",
+    "pytest-cov>=5.0",
+    "ruff>=0.5",
+    "mypy>=1.10",
+    "hypothesis>=6.100",              # property-based testing for audit chain
+    "respx>=0.21",                    # mock httpx for HITL webhook tests
+    "time-machine>=2.14",             # deterministic time in tests
+]
+
+[project.scripts]
+wire = "wire.cli:app"
+
+[project.urls]
+Homepage   = "https://github.com/naveenkumarbaskaran/wire-ai"
+Repository = "https://github.com/naveenkumarbaskaran/wire-ai"
+Issues     = "https://github.com/naveenkumarbaskaran/wire-ai/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/wire"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths    = ["tests"]
+
+[tool.ruff]
+line-length = 100
+src = ["src"]
+select = ["E", "F", "I", "UP", "ANN", "ASYNC"]
+ignore = ["ANN101"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+ignore_missing_imports = true
