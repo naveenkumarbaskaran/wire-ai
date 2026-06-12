@@ -1,0 +1,166 @@
+{
+  "wire_version": "1.3.0",
+  "run_at": "2026-06-12T09:53:31.573010+00:00",
+  "total_elapsed_ms": 23398.67,
+  "results": {
+    "loop_guard": {
+      "benchmark": "loop_guard",
+      "unprotected": {
+        "iterations_run": 1000,
+        "cost_incurred_usd": 2.0,
+        "time_to_halt_ms": 139.27,
+        "halt_reason": "rate-limit cap at 1000 iterations"
+      },
+      "wire": {
+        "iterations_run": 51,
+        "cost_incurred_usd": 0.102,
+        "time_to_halt_ms": 8.52,
+        "halt_reason": "LoopGuard halted at iteration 51/50"
+      },
+      "savings": {
+        "iterations_prevented": 949,
+        "cost_saved_usd": 1.898,
+        "time_saved_ms": 130.75,
+        "cost_reduction_pct": 94.9
+      }
+    },
+    "idempotency_guard": {
+      "benchmark": "idempotency_guard",
+      "scenario": {
+        "retries": 3,
+        "tool": "jira_create",
+        "side_effect": "Jira ticket creation",
+        "description": "Task retries 3x with identical args \u2014 how many tickets are created?"
+      },
+      "unprotected": {
+        "label": "Unprotected (no governance)",
+        "actual_tool_executions": 3,
+        "tickets_created": [
+          "OPS-1000",
+          "OPS-1001",
+          "OPS-1002"
+        ],
+        "duplicate_calls_prevented": 0,
+        "idempotency_hit_rate": 0.0,
+        "total_elapsed_ms": 17.12
+      },
+      "wire_memory": {
+        "label": "WIRE IdempotencyGuard (Memory)",
+        "actual_tool_executions": 1,
+        "tickets_created": [
+          "OPS-1000"
+        ],
+        "duplicate_calls_prevented": 2,
+        "idempotency_hit_rate": 0.667,
+        "total_elapsed_ms": 5.81
+      },
+      "wire_sqlite": {
+        "label": "WIRE IdempotencyGuard (SQLite)",
+        "actual_tool_executions": 1,
+        "tickets_created": [
+          "OPS-1000"
+        ],
+        "duplicate_calls_prevented": 2,
+        "idempotency_hit_rate": 0.667,
+        "total_elapsed_ms": 94.65
+      },
+      "overhead": {
+        "iterations": 500,
+        "baseline_per_call_us": 0.1,
+        "guard_per_call_us": 3.63,
+        "overhead_per_call_us": 3.54
+      },
+      "summary": {
+        "tickets_without_wire": 3,
+        "tickets_with_wire": 1,
+        "duplicates_prevented": 2,
+        "hit_rate_pct": 66.7,
+        "overhead_per_call_us": 3.54
+      }
+    },
+    "audit_chain": {
+      "benchmark": "audit_chain",
+      "scenario": {
+        "n_entries": 1000,
+        "tamper_at_entry": 500,
+        "description": "Write 1000 entries, verify chain, inject tamper at entry 500"
+      },
+      "no_audit_baseline": {
+        "label": "Raw file write (no integrity)",
+        "write_throughput_eps": 564732.5,
+        "verify_throughput_eps": "N/A \u2014 no chain to verify",
+        "tamper_detection": "impossible \u2014 no chain"
+      },
+      "wire_jsonl": {
+        "label": "WIRE AuditChain (JSONL)",
+        "write_throughput_eps": 311.7,
+        "write_time_ms": 3208.66,
+        "verify_throughput_eps": 62505.2,
+        "verify_time_ms": 16.0,
+        "write_overhead_vs_raw_pct": 99.9
+      },
+      "tamper_detection": {
+        "tampered_at_entry": 500,
+        "original_value": "user500@corp.com",
+        "injected_value": "attacker@evil.com",
+        "detected": true,
+        "detected_at_entry": 500,
+        "detection_latency_ms": 7.53,
+        "false_negatives": 0
+      },
+      "summary": {
+        "write_throughput_eps": 311.7,
+        "verify_throughput_eps": 62505.2,
+        "tamper_detected": true,
+        "tamper_detection_ms": 7.53,
+        "write_overhead_pct": 99.9
+      }
+    },
+    "sla_tracker": {
+      "benchmark": "sla_tracker",
+      "scenario": {
+        "n_invocations": 100,
+        "sla_threshold_ms": 100.0,
+        "latency_mean_ms": 80.0,
+        "latency_stddev_ms": 30.0,
+        "random_seed": 42,
+        "programmed_breaches": 24,
+        "ground_truth_measured_breaches": 28,
+        "description": "100 invocations, normal latency dist (\u03bc=80ms \u03c3=30ms), SLA=100ms"
+      },
+      "unprotected": {
+        "label": "Unprotected (no SLA enforcement)",
+        "n_invocations": 100,
+        "measured_breaches": 28,
+        "detected_breaches": 0,
+        "silent_failures": 28,
+        "detection_rate_pct": 0.0,
+        "total_elapsed_ms": 8292.51
+      },
+      "wire": {
+        "label": "WIRE SLATracker",
+        "n_invocations": 100,
+        "measured_breaches": 28,
+        "detected_breaches": 28,
+        "silent_failures": 0,
+        "detection_rate_pct": 100.0,
+        "false_positive_rate_pct": 0.0,
+        "total_elapsed_ms": 8322.39
+      },
+      "pure_overhead": {
+        "iterations": 1000,
+        "baseline_median_us": 19.709,
+        "tracked_median_us": 25.5,
+        "overhead_per_call_us": 5.791
+      },
+      "summary": {
+        "actual_breaches": 28,
+        "detected_by_wire": 28,
+        "missed_without_wire": 28,
+        "detection_rate_pct": 100.0,
+        "false_positive_rate_pct": 0.0,
+        "overhead_per_call_us": 5.791
+      }
+    }
+  }
+}
