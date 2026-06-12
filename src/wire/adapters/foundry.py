@@ -100,6 +100,10 @@ class FoundryAdapter:
         # Blueprint ID — governs this agent type for org-level Conditional Access
         self._blueprint_id: str | None = config.extra.get("blueprint_id")
 
+        # Tool registry: maps tool_name → async callable
+        # Register tools via adapter.register_tool("tool_name", async_fn)
+        self._tool_registry: dict[str, Any] = config.extra.get("tool_registry", {})
+
         # Resolve client + agent_id from whatever was passed to wire.deploy()
         if isinstance(agent_or_config, dict):
             self._endpoint = agent_or_config.get("endpoint", "")
@@ -291,8 +295,19 @@ class FoundryAdapter:
             foundry_run_id = foundry_run.id
             await audit.write("run_created", data={"foundry_run_id": foundry_run_id})
 
+            # Wall-clock timeout: max_iterations * poll_interval + 60s buffer
+            import time as _time
+            poll_deadline = _time.monotonic() + (
+                self._config.max_iterations * _POLL_INTERVAL_S + 60.0
+            )
+
             # Poll loop — check requires_action before sleeping/fetching
             while foundry_run.status not in _TERMINAL_STATES:
+                if _time.monotonic() > poll_deadline:
+                    raise FoundryRunFailedError(
+                        foundry_run_id, "poll_timeout",
+                        f"Run exceeded wall-clock timeout of {self._config.max_iterations} iterations"
+                    )
 
                 # ── requires_action: check BEFORE sleeping ────────────────────
                 if foundry_run.status == "requires_action":
@@ -465,13 +480,42 @@ class FoundryAdapter:
 
     # ── Helpers ───────────────────────────────────────────────────────────────
 
+    def register_tool(self, name: str, fn: Any) -> None:
+        """
+        Register an async callable to handle a Foundry tool call by name.
+
+        Usage:
+            async def create_ticket(title: str, priority: str) -> dict:
+                return {"id": "PROJ-123"}
+
+            workforce.register_tool("create_ticket", create_ticket)
+        """
+        self._tool_registry[name] = fn
+        log.debug("foundry_tool_registered", tool=name)
+
     async def _execute_tool(self, tool_name: str, args: dict[str, Any]) -> str:
         """
-        Default tool executor — override in subclasses or pass a tool_registry.
-        Returns a placeholder; real implementations register tools via tool_registry.
+        Execute a Foundry tool call.
+        Checks tool_registry first; falls back to placeholder if not registered.
+        Register tools with adapter.register_tool("name", async_fn).
         """
-        log.warning("foundry_tool_no_executor", tool=tool_name)
-        return f'{{"status": "ok", "tool": "{tool_name}", "note": "no executor registered"}}'
+        executor = self._tool_registry.get(tool_name)
+        if executor:
+            try:
+                import inspect
+                if inspect.iscoroutinefunction(executor):
+                    result = await executor(**args)
+                else:
+                    result = executor(**args)
+                import json
+                return json.dumps(result, default=str)
+            except Exception as e:
+                log.error("foundry_tool_error", tool=tool_name, error=str(e))
+                return f'{{"error": "{str(e)}", "tool": "{tool_name}"}}'
+        else:
+            log.warning("foundry_tool_no_executor", tool=tool_name,
+                        registered=list(self._tool_registry.keys()))
+            return f'{{"status": "ok", "tool": "{tool_name}", "note": "no executor registered — call adapter.register_tool(\\"{tool_name}\\", fn)"}}'
 
     async def _get_last_message(self, client: Any, thread_id: str) -> str:
         """Fetch the last assistant message from the thread."""

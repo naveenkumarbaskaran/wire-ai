@@ -263,10 +263,12 @@ class RedisBackend:
         url: str = "redis://localhost:6379",
         ttl_seconds: int = 86400,  # 24 hours default
         db: int = 0,
+        max_connections: int = 10,
     ) -> None:
         self.url = url
         self.ttl_seconds = ttl_seconds
         self.db = db
+        self.max_connections = max_connections
         self._client: Any = None
 
     async def _conn(self) -> Any:
@@ -277,7 +279,10 @@ class RedisBackend:
                 raise ImportError(
                     "RedisBackend requires redis[hiredis]. Install: pip install wire-ai[redis]"
                 )
-            self._client = aioredis.from_url(self.url, db=self.db, decode_responses=True)
+            self._client = aioredis.from_url(
+                self.url, db=self.db, decode_responses=True,
+                max_connections=self.max_connections,
+            )
         return self._client
 
     def _k(self, key: str) -> str:
@@ -394,10 +399,14 @@ class PostgresBackend:
         dsn: str,
         tenant_id: str = "",
         ttl_seconds: int | None = None,
+        min_pool_size: int = 2,
+        max_pool_size: int = 10,
     ) -> None:
         self.dsn = dsn
         self.tenant_id = tenant_id
         self.ttl_seconds = ttl_seconds
+        self.min_pool_size = min_pool_size
+        self.max_pool_size = max_pool_size
         self._pool: Any = None
 
     async def _conn(self) -> Any:
@@ -408,7 +417,11 @@ class PostgresBackend:
                 raise ImportError(
                     "PostgresBackend requires asyncpg. Install: pip install wire-ai[postgres]"
                 )
-            self._pool = await asyncpg.create_pool(self.dsn)
+            self._pool = await asyncpg.create_pool(
+                self.dsn,
+                min_size=self.min_pool_size,
+                max_size=self.max_pool_size,
+            )
             async with self._pool.acquire() as conn:
                 await conn.execute(self._CREATE)
         return self._pool
@@ -440,18 +453,21 @@ class PostgresBackend:
         if self.ttl_seconds:
             expires_at = datetime.now(timezone.utc) + timedelta(seconds=self.ttl_seconds)
         async with pool.acquire() as conn:
-            await conn.execute(
+            row = await conn.fetchrow(
                 """
                 INSERT INTO wire_idempotency
                     (key, tenant_id, run_id, tool, result, executed_at, call_count, expires_at)
                 VALUES ($1, $2, $3, $4, $5::jsonb, $6, $7, $8)
                 ON CONFLICT (key, tenant_id) DO UPDATE SET
                     call_count = wire_idempotency.call_count + 1
+                RETURNING key, call_count
                 """,
                 key, self.tenant_id, record.run_id, record.tool,
                 json.dumps(record.result, default=str),
                 record.executed_at, record.call_count, expires_at,
             )
+        if row is None:
+            log.warning("idem_pg_set_no_row", key=key[:12], tenant=self.tenant_id)
         log.debug("idem_pg_set", key=key[:12], tool=record.tool, tenant=self.tenant_id)
 
     async def increment(self, key: str) -> int:

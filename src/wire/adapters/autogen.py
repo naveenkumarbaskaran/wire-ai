@@ -179,7 +179,7 @@ class AutoGenAdapter:
                     recipient.receive = patched_receive
 
                 try:
-                    result = await asyncio.get_event_loop().run_in_executor(
+                    result = await asyncio.get_running_loop().run_in_executor(
                         None,
                         lambda: initiator.initiate_chat(
                             recipient,
@@ -209,7 +209,7 @@ class AutoGenAdapter:
             }
 
         # Fallback: try generic async invoke
-        result = await asyncio.get_event_loop().run_in_executor(
+        result = await asyncio.get_running_loop().run_in_executor(
             None, lambda: target.generate_reply(messages=[{"role": "user", "content": message}])
         )
         guard.tick()

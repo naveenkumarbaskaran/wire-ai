@@ -166,7 +166,26 @@ class BlueprintRegistry:
         # Re-use PermissionDeniedError with a synthetic "deploy_blueprint" permission
         # so callers can catch the existing enterprise error type.
         from wire.enterprise.rbac import Permission  # local import avoids circularity risk
-        raise PermissionDeniedError(actor.id, Permission.DEPLOY)
+        err = PermissionDeniedError(actor.id, Permission.DEPLOY)
+        # Emit structured log entry that EventStore and MetricsCollector can pick up
+        try:
+            import asyncio
+            from wire.core.events import EventBus, EventKind, WIREEvent
+            loop = asyncio.get_running_loop()
+            bus = EventBus()
+            loop.create_task(bus.emit(WIREEvent(
+                kind=EventKind.WORKFORCE_START,  # closest available kind for policy events
+                run_id=f"blueprint-denied-{blueprint_id}",
+                data={
+                    "event_type": "blueprint_deploy_denied",
+                    "blueprint_id": blueprint_id,
+                    "actor_id": actor.id,
+                    "allowed_roles": blueprint.allowed_roles,
+                },
+            )))
+        except RuntimeError:
+            pass  # No running loop — skip event emission
+        raise err
 
     @property
     def count(self) -> int:

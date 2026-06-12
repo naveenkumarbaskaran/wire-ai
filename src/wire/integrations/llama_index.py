@@ -253,11 +253,25 @@ class GovernedQueryEngine:
 
 
 async def _wrap_sync_gen(gen: Any):
-    """Wrap a sync generator as an async generator."""
+    """
+    Wrap a sync generator as an async generator.
+    Uses run_in_executor so each next() call is truly non-blocking.
+    """
     import asyncio
-    for item in gen:
+    loop = asyncio.get_running_loop()
+    sentinel = object()
+
+    def _next():
+        try:
+            return next(gen)
+        except StopIteration:
+            return sentinel
+
+    while True:
+        item = await loop.run_in_executor(None, _next)
+        if item is sentinel:
+            return
         yield item
-        await asyncio.sleep(0)  # yield control to event loop
 
 
 def wrap_query_engine(

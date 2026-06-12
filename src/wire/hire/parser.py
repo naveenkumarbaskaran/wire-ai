@@ -158,14 +158,18 @@ class HIREParser:
             if not matched:
                 continue
 
-            # Score = longest match length / max possible phrase length, capped 1.0
-            score = min(
-                sum(len(p.split()) for p in matched) / max(len(normalised.split()), 1),
-                1.0,
-            )
-            # Boost for longer phrase matches (more specific = more confident)
-            boost = max(len(p.split()) for p in matched) * 0.05
-            score = min(score + boost, 1.0)
+            intent_words = max(len(normalised.split()), 1)
+            matched_words = sum(len(p.split()) for p in matched)
+            longest_phrase_words = max(len(p.split()) for p in matched)
+
+            # Base score: fraction of intent words matched
+            base = min(matched_words / intent_words, 1.0)
+            # Specificity bonus: longer individual phrases are more specific
+            # Capped at 0.20 to avoid short generic phrases appearing too confident
+            specificity = min(longest_phrase_words * 0.04, 0.20)
+            # Coverage bonus: more phrases matched = more confident
+            coverage = min(len(matched) * 0.02, 0.10)
+            score = min(base + specificity + coverage, 1.0)
             scored.append((score, matched, template))
 
         if not scored:

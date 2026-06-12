@@ -136,8 +136,8 @@ class MetricsCollector:
             "Workforce run duration in seconds",
         )
         self.cost_total = Counter(
-            "wire_cost_usd_micro",
-            "Total cost in micro-USD (multiply by 1e-6 for USD)",
+            "wire_cost_usd_total",
+            "Total cost in USD (floating point, stored as integer micro-USD internally)",
         )
         self.iterations_total = Counter(
             "wire_iterations_total",

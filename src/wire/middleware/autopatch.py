@@ -144,15 +144,20 @@ def patch(
 
 
 def unpatch() -> None:
-    """Remove all WIRE patches. Useful for testing."""
+    """Remove all WIRE patches. Restores all original methods."""
+    errors: list[str] = []
     for restore_fn in _patch_config.get("_restore_fns", []):
         try:
             restore_fn()
         except Exception as e:
             log.warning("unpatch_error", error=str(e))
+            errors.append(str(e))
     _patch_config["enabled"] = False
     _patch_config["patched"] = []
-    log.info("wire_unpatched")
+    _patch_config["_restore_fns"] = []
+    log.info("wire_unpatched", errors=len(errors))
+    if errors:
+        log.warning("unpatch_partial_failure", failed=errors)
 
 
 def is_patched() -> bool:

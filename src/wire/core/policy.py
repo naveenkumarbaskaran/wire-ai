@@ -89,9 +89,11 @@ class PolicyEnforcer:
         # Raises PolicyViolationError if not allowed
     """
 
-    def __init__(self, template: RoleTemplate) -> None:
+    def __init__(self, template: RoleTemplate, *, destination_arg_keys: list[str] | None = None) -> None:
         self.template = template
         self.authority = template.authority
+        # Configurable: extra arg keys to check for write destination
+        self._destination_arg_keys = destination_arg_keys or []
         self._spend_total: float = 0.0
 
     def check(self, ctx: ToolCallContext) -> None:
@@ -169,11 +171,11 @@ class PolicyEnforcer:
                 return True
         return False
 
-    @staticmethod
-    def _extract_destination(tool_lower: str, args: dict[str, Any]) -> str | None:
+    def _extract_destination(self, tool_lower: str, args: dict[str, Any]) -> str | None:
         """Extract the write destination from tool name or args."""
-        # Try args first
-        for key in ("destination", "target", "service", "backend", "to"):
+        # Check user-configured keys first, then standard keys
+        all_keys = self._destination_arg_keys + ["destination", "target", "service", "backend", "to", "api_endpoint"]
+        for key in all_keys:
             if key in args:
                 return str(args[key]).lower()
         # Fall back to tool name fragments
