@@ -55,7 +55,6 @@ class LangGraphAdapter:
     """
 
     def __init__(self, graph: Any, config: DeployConfig) -> None:
-        _require_langgraph()
         self._graph = graph
         self._config = config
         self._bus = EventBus()
