@@ -314,3 +314,150 @@ class TestWebDashboardUrl:
     def test_url_reflects_custom_port(self, dash: WorkforceDashboard) -> None:
         w = WebDashboard(dashboard=dash, port=9090)
         assert w.url() == "http://localhost:9090"
+
+    def test_url_returns_https_when_ssl_certfile_set(
+        self, dash: WorkforceDashboard, tmp_path
+    ) -> None:
+        """url() must return https:// when both ssl_certfile and ssl_keyfile are provided."""
+        fake_cert = tmp_path / "cert.pem"
+        fake_key = tmp_path / "key.pem"
+        fake_cert.write_text("cert")
+        fake_key.write_text("key")
+        w = WebDashboard(
+            dashboard=dash,
+            port=8443,
+            ssl_certfile=str(fake_cert),
+            ssl_keyfile=str(fake_key),
+        )
+        assert w.url().startswith("https://")
+        assert ":8443" in w.url()
+
+    def test_url_returns_http_when_no_ssl(self, dash: WorkforceDashboard) -> None:
+        """url() must return http:// when no SSL files are provided."""
+        w = WebDashboard(dashboard=dash, port=8080)
+        assert w.url().startswith("http://")
+
+
+# ── API Key Authentication ────────────────────────────────────────────────────
+
+class TestApiKeyAuth:
+    @pytest.mark.anyio
+    async def test_unauthenticated_request_returns_401(
+        self, dash: WorkforceDashboard
+    ) -> None:
+        """Any request without a valid API key must be rejected with 401."""
+        w = WebDashboard(dashboard=dash, port=8080, api_key="secret-token")
+        async with _client(w._app) as client:
+            resp = await client.get("/api/state")
+        assert resp.status_code == 401
+
+    @pytest.mark.anyio
+    async def test_bearer_token_grants_access(
+        self, dash: WorkforceDashboard
+    ) -> None:
+        """A correct Bearer token in Authorization header must return 200."""
+        w = WebDashboard(dashboard=dash, port=8080, api_key="secret-token")
+        async with _client(w._app) as client:
+            resp = await client.get(
+                "/api/state",
+                headers={"Authorization": "Bearer secret-token"},
+            )
+        assert resp.status_code == 200
+
+    @pytest.mark.anyio
+    async def test_wrong_bearer_token_returns_401(
+        self, dash: WorkforceDashboard
+    ) -> None:
+        """A wrong Bearer token must be rejected with 401."""
+        w = WebDashboard(dashboard=dash, port=8080, api_key="secret-token")
+        async with _client(w._app) as client:
+            resp = await client.get(
+                "/api/state",
+                headers={"Authorization": "Bearer wrong-token"},
+            )
+        assert resp.status_code == 401
+
+    @pytest.mark.anyio
+    async def test_query_param_key_grants_access(
+        self, dash: WorkforceDashboard
+    ) -> None:
+        """Passing ?key=<api_key> as a query param must return 200."""
+        w = WebDashboard(dashboard=dash, port=8080, api_key="secret-token")
+        async with _client(w._app) as client:
+            resp = await client.get("/api/state?key=secret-token")
+        assert resp.status_code == 200
+
+    @pytest.mark.anyio
+    async def test_health_endpoint_exempt_from_auth(
+        self, dash: WorkforceDashboard
+    ) -> None:
+        """/health must be accessible without any credentials."""
+        w = WebDashboard(dashboard=dash, port=8080, api_key="secret-token")
+        async with _client(w._app) as client:
+            resp = await client.get("/health")
+        assert resp.status_code == 200
+
+    @pytest.mark.anyio
+    async def test_no_api_key_allows_unauthenticated_access(
+        self, dash: WorkforceDashboard
+    ) -> None:
+        """When api_key is None, all routes are open (no auth middleware)."""
+        w = WebDashboard(dashboard=dash, port=8080)
+        async with _client(w._app) as client:
+            resp = await client.get("/api/state")
+        assert resp.status_code == 200
+
+    @pytest.mark.anyio
+    async def test_html_page_injects_api_key_into_js(
+        self, dash: WorkforceDashboard
+    ) -> None:
+        """The served HTML must contain the API key embedded in a JS variable."""
+        w = WebDashboard(dashboard=dash, port=8080, api_key="my-secret")
+        async with _client(w._app) as client:
+            resp = await client.get(
+                "/",
+                headers={"Authorization": "Bearer my-secret"},
+            )
+        assert resp.status_code == 200
+        # The key must be embedded in JS (surrounded by quotes, not hardcoded text)
+        assert '"my-secret"' in resp.text
+
+    @pytest.mark.anyio
+    async def test_html_page_sets_api_key_null_when_no_auth(
+        self, dash: WorkforceDashboard
+    ) -> None:
+        """When no api_key is set, the JS variable must be null."""
+        w = WebDashboard(dashboard=dash, port=8080)
+        async with _client(w._app) as client:
+            resp = await client.get("/")
+        assert "API_KEY = null" in resp.text
+
+
+# ── generate_self_signed_cert ─────────────────────────────────────────────────
+
+class TestGenerateSelfSignedCert:
+    def test_generates_cert_and_key_files(self, tmp_path) -> None:
+        """generate_self_signed_cert() must create cert.pem and key.pem."""
+        cryptography = pytest.importorskip(
+            "cryptography", reason="requires pip install cryptography"
+        )
+        cert_path, key_path = WebDashboard.generate_self_signed_cert(str(tmp_path))
+        import os
+        assert os.path.isfile(cert_path), "cert.pem not created"
+        assert os.path.isfile(key_path), "key.pem not created"
+
+    def test_cert_file_is_pem(self, tmp_path) -> None:
+        """The cert file must start with the PEM header."""
+        pytest.importorskip("cryptography")
+        cert_path, _ = WebDashboard.generate_self_signed_cert(str(tmp_path))
+        with open(cert_path) as f:
+            content = f.read()
+        assert "BEGIN CERTIFICATE" in content
+
+    def test_key_file_is_pem(self, tmp_path) -> None:
+        """The key file must start with the PEM header."""
+        pytest.importorskip("cryptography")
+        _, key_path = WebDashboard.generate_self_signed_cert(str(tmp_path))
+        with open(key_path) as f:
+            content = f.read()
+        assert "BEGIN" in content  # RSA PRIVATE KEY or PRIVATE KEY

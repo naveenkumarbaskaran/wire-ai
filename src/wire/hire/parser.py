@@ -31,6 +31,16 @@ _RULE_CONFIDENCE_THRESHOLD = 0.70
 # Confidence threshold below which LLM fallback is triggered (after semantic)
 _SEMANTIC_CONFIDENCE_THRESHOLD = 0.65
 
+# ── Phrase weight multipliers ─────────────────────────────────────────────────
+# Multi-word phrases are more specific and carry higher signal than single words.
+# 1-word match  → 1.0×  (baseline)
+# 2-word match  → 1.5×  (e.g. "monitor cost")
+# 3+ word match → 2.0×  (e.g. "cost threshold exceeded")
+PHRASE_WEIGHT: dict[int, float] = {
+    1: 1.0,
+    2: 1.5,
+}
+
 
 @dataclass
 class MatchResult:
@@ -158,24 +168,13 @@ class HIREParser:
             if not matched:
                 continue
 
-            intent_words = max(len(normalised.split()), 1)
-            matched_words = sum(len(p.split()) for p in matched)
-            longest_phrase_words = max(len(p.split()) for p in matched)
-
-            # Base score: fraction of intent words matched
-            base = min(matched_words / intent_words, 1.0)
-            # Specificity bonus: longer individual phrases are more specific
-            # Capped at 0.20 to avoid short generic phrases appearing too confident
-            specificity = min(longest_phrase_words * 0.04, 0.20)
-            # Coverage bonus: more phrases matched = more confident
-            coverage = min(len(matched) * 0.02, 0.10)
-            score = min(base + specificity + coverage, 1.0)
+            score = self._score(normalised, matched)
             scored.append((score, matched, template))
 
         if not scored:
             return []
 
-        # Deduplicate overlapping templates — keep highest score per category
+        # Sort by descending score
         scored.sort(key=lambda x: -x[0])
 
         # Assign workflow order based on natural dependency:
@@ -204,6 +203,37 @@ class HIREParser:
             ))
 
         return results
+
+    @staticmethod
+    def _score(normalised: str, matched: list[str]) -> float:
+        """
+        Compute a confidence score using weighted phrase matching.
+
+        Formula: weighted_match_score + specificity_bonus + coverage_bonus,
+        capped at 1.0.
+
+        - weighted_match_score: sum of (phrase_word_count × weight) / intent_word_count
+          where weight = 1.0 for 1-word, 1.5 for 2-word, 2.0 for 3+-word phrases.
+        - specificity_bonus: 0.04 per word in the longest matched phrase, capped at 0.20.
+        - coverage_bonus: 0.03 per matched phrase, capped at 0.15.
+        """
+        intent_words = max(len(normalised.split()), 1)
+
+        # Weighted word count — longer phrases score higher
+        weighted_words = sum(
+            len(p.split()) * PHRASE_WEIGHT.get(len(p.split()), 2.0)
+            for p in matched
+        )
+        weighted_match_score = min(weighted_words / intent_words, 1.0)
+
+        # Specificity: longest single matched phrase
+        longest_phrase_words = max(len(p.split()) for p in matched)
+        specificity_bonus = min(longest_phrase_words * 0.04, 0.20)
+
+        # Coverage: how many distinct phrases matched
+        coverage_bonus = min(len(matched) * 0.03, 0.15)
+
+        return min(weighted_match_score + specificity_bonus + coverage_bonus, 1.0)
 
     # ── Semantic matching ─────────────────────────────────────────────────────
 

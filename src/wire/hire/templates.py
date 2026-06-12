@@ -73,6 +73,11 @@ ROLE_TEMPLATES: list[RoleTemplate] = [
             "aws cost", "cloud spend", "api spend", "billing monitor",
             "monitor spend", "monitor aws", "monitor budget",
             "aws spend", "cost exceed", "spend exceed", "flag spend",
+            # Extended enterprise phrases
+            "aws billing", "cloud costs", "overspend", "budget exceeded",
+            "cost anomaly", "spending alert", "cost threshold exceeded",
+            "monitor cloud spend", "track aws spend", "cloud billing alert",
+            "spending threshold", "budget alert", "cost overrun",
         ],
         default_sla=SLADefaults(response_seconds=120, max_cost_usd=0.05),
         authority=AuthorityScope(
@@ -92,6 +97,11 @@ ROLE_TEMPLATES: list[RoleTemplate] = [
             "monitor uptime", "health check", "watch endpoint", "service monitor",
             "ping check", "availability monitor", "latency monitor", "uptime check",
             "is service up", "monitor health", "check status",
+            # Extended enterprise phrases
+            "service availability", "endpoint health", "monitor endpoints",
+            "check availability", "service uptime", "uptime alert",
+            "service health check", "availability check", "response time check",
+            "monitor response time", "check if service is up",
         ],
         default_sla=SLADefaults(response_seconds=30, max_cost_usd=0.02),
         authority=AuthorityScope(
@@ -112,6 +122,11 @@ ROLE_TEMPLATES: list[RoleTemplate] = [
             "outlier detection", "unusual pattern", "detect spike", "flag unusual",
             "statistical anomaly", "data anomaly", "metric anomaly",
             "detect anomalies", "flag anomalies", "anomalies",
+            # Extended enterprise phrases
+            "unusual activity", "detect unusual", "flag anomalies",
+            "outlier", "spike", "abnormal", "abnormal pattern",
+            "unusual behavior", "detect outliers", "detect spikes",
+            "metric spike", "traffic spike", "usage anomaly",
         ],
         default_sla=SLADefaults(response_seconds=60, max_cost_usd=0.10, min_confidence=0.75),
         authority=AuthorityScope(
@@ -130,6 +145,10 @@ ROLE_TEMPLATES: list[RoleTemplate] = [
         trigger_phrases=[
             "watch sla", "sla monitor", "sla compliance", "track sla",
             "response time monitor", "latency sla", "sla breach", "sla alert",
+            # Extended enterprise phrases
+            "monitor sla", "sla violation", "breach sla", "sla threshold",
+            "service level agreement", "track response time", "latency alert",
+            "sla tracking", "response time threshold", "performance sla",
         ],
         default_sla=SLADefaults(response_seconds=60, max_cost_usd=0.03),
         authority=AuthorityScope(
@@ -151,6 +170,11 @@ ROLE_TEMPLATES: list[RoleTemplate] = [
             "analyse data", "analyze data", "data analysis", "run analysis",
             "generate insights", "data summary", "analyse metrics", "data insights",
             "crunch numbers", "analyse report", "statistical analysis",
+            # Extended enterprise phrases
+            "analyze metrics", "analyze results", "data investigation",
+            "trend analysis", "performance analysis", "usage analysis",
+            "analyze patterns", "analyze usage", "examine data",
+            "data exploration", "analyze trends",
         ],
         default_sla=SLADefaults(response_seconds=300, max_cost_usd=0.50, min_confidence=0.70),
         authority=AuthorityScope(
@@ -171,6 +195,11 @@ ROLE_TEMPLATES: list[RoleTemplate] = [
             "analyse logs", "analyze logs", "log analysis", "parse logs",
             "search logs", "find errors in logs", "log patterns", "error analysis",
             "trace analysis", "log investigation",
+            # Extended enterprise phrases
+            "investigate logs", "examine logs", "grep logs",
+            "log errors", "find log errors", "search error logs",
+            "analyze error logs", "log aggregation", "log inspection",
+            "check application logs", "application log analysis",
         ],
         default_sla=SLADefaults(response_seconds=120, max_cost_usd=0.20),
         authority=AuthorityScope(
@@ -190,6 +219,11 @@ ROLE_TEMPLATES: list[RoleTemplate] = [
             "analyse incident", "analyze incident", "root cause", "rca",
             "incident analysis", "postmortem", "what caused", "investigate incident",
             "diagnose issue", "find root cause",
+            # Extended enterprise phrases
+            "incident investigation", "failure analysis", "failure root cause",
+            "troubleshoot incident", "incident rca", "post-incident review",
+            "what went wrong", "why did it fail", "trace the failure",
+            "investigate failure", "diagnose outage", "outage analysis",
         ],
         default_sla=SLADefaults(response_seconds=600, max_cost_usd=1.00, min_confidence=0.75),
         authority=AuthorityScope(
@@ -210,6 +244,11 @@ ROLE_TEMPLATES: list[RoleTemplate] = [
             "generate report", "create report", "write report", "make report",
             "summarise findings", "summarize findings", "report on", "weekly report",
             "daily report", "executive summary", "status report",
+            # Extended enterprise phrases
+            "build report", "produce report", "compile report",
+            "generate summary", "create summary", "write summary",
+            "generate weekly report", "generate daily report",
+            "monthly report", "quarterly report", "progress report",
         ],
         default_sla=SLADefaults(response_seconds=300, max_cost_usd=0.30),
         authority=AuthorityScope(
@@ -234,6 +273,11 @@ ROLE_TEMPLATES: list[RoleTemplate] = [
             "create p1", "create p2", "open bug", "create servicenow",
             "jira ticket", "jira p1", "jira p2", "open a jira",
             "create a ticket", "create a jira", "open a ticket",
+            # Extended enterprise phrases
+            "file a bug", "open an issue", "raise a ticket", "log a defect",
+            "create incident", "open case", "raise defect", "log issue",
+            "file issue", "open defect", "create bug", "submit ticket",
+            "open jira ticket", "file jira", "create jira issue",
         ],
         default_sla=SLADefaults(response_seconds=30, max_cost_usd=0.05),
         authority=AuthorityScope(
@@ -255,6 +299,12 @@ ROLE_TEMPLATES: list[RoleTemplate] = [
             "send notification", "notify team", "send alert", "post to slack",
             "send email", "send message", "alert on call", "page oncall",
             "send to channel", "notify channel", "send update",
+            # Extended enterprise phrases
+            "notify", "alert", "ping", "message", "post update",
+            "send slack", "slack notification", "email alert",
+            "send teams", "teams notification", "pagerduty alert",
+            "notify ops", "alert team", "notify stakeholders",
+            "broadcast alert", "send to slack",
         ],
         default_sla=SLADefaults(response_seconds=15, max_cost_usd=0.01),
         authority=AuthorityScope(
@@ -275,6 +325,11 @@ ROLE_TEMPLATES: list[RoleTemplate] = [
             "trigger workflow", "run pipeline", "trigger ci", "trigger deploy",
             "call webhook", "trigger automation", "run job", "kick off pipeline",
             "start workflow", "execute pipeline",
+            # Extended enterprise phrases
+            "invoke webhook", "fire webhook", "start pipeline",
+            "trigger github actions", "run automation", "start ci",
+            "deploy pipeline", "trigger build", "run ci cd",
+            "kick off workflow", "execute workflow", "launch pipeline",
         ],
         default_sla=SLADefaults(response_seconds=60, max_cost_usd=0.05),
         authority=AuthorityScope(
@@ -296,6 +351,11 @@ ROLE_TEMPLATES: list[RoleTemplate] = [
             "write data", "update database", "insert record", "update record",
             "save to db", "write to file", "update api", "patch record",
             "store data", "write results",
+            # Extended enterprise phrases
+            "persist data", "save data", "write to database",
+            "update table", "insert into database", "upsert record",
+            "delete record", "write to storage", "save results",
+            "commit data", "write to s3", "save to storage",
         ],
         default_sla=SLADefaults(response_seconds=30, max_cost_usd=0.05),
         authority=AuthorityScope(
@@ -319,6 +379,12 @@ ROLE_TEMPLATES: list[RoleTemplate] = [
             "escalate to human", "human approval", "require approval", "ask human",
             "get approval", "human review", "escalate", "wait for approval",
             "notify human", "human in the loop", "hitl",
+            # Extended enterprise phrases
+            "needs approval", "require human", "get sign-off",
+            "notify manager", "alert on-call", "page someone",
+            "needs human review", "human sign-off", "manager approval",
+            "escalate to ops", "escalate to team", "loop in human",
+            "get human input", "require human review", "human oversight",
         ],
         default_sla=SLADefaults(response_seconds=1800),  # 30 min
         authority=AuthorityScope(
@@ -338,6 +404,11 @@ ROLE_TEMPLATES: list[RoleTemplate] = [
         trigger_phrases=[
             "route approval", "approval routing", "find approver", "route to approver",
             "conditional approval", "risk-based approval", "escalation routing",
+            # Extended enterprise phrases
+            "route to approver", "find right approver", "approval workflow",
+            "risk based routing", "dynamic approval", "tiered approval",
+            "route based on risk", "smart approval routing", "approval chain",
+            "approval delegation", "route to manager",
         ],
         default_sla=SLADefaults(response_seconds=300),
         authority=AuthorityScope(
@@ -358,6 +429,11 @@ ROLE_TEMPLATES: list[RoleTemplate] = [
             "compliance check", "policy check", "validate compliance", "check policy",
             "regulatory check", "gdpr check", "hipaa check", "soc2 check",
             "before executing", "pre-execution check", "policy validation",
+            # Extended enterprise phrases
+            "check compliance", "enforce policy", "verify compliance",
+            "compliance validation", "policy enforcement", "regulatory compliance",
+            "compliance gate", "pre-flight compliance", "compliance scan",
+            "audit compliance", "security compliance check",
         ],
         default_sla=SLADefaults(response_seconds=30, min_confidence=0.90),
         authority=AuthorityScope(
@@ -377,6 +453,11 @@ ROLE_TEMPLATES: list[RoleTemplate] = [
         trigger_phrases=[
             "audit report", "generate audit", "compliance report", "audit log report",
             "audit summary", "generate compliance report", "audit trail report",
+            # Extended enterprise phrases
+            "audit trail", "generate audit report", "create audit log",
+            "audit history", "compliance audit", "security audit report",
+            "audit findings", "audit documentation", "audit log summary",
+            "regulatory audit report", "generate audit trail",
         ],
         default_sla=SLADefaults(response_seconds=120, max_cost_usd=0.20),
         authority=AuthorityScope(
@@ -399,6 +480,11 @@ ROLE_TEMPLATES: list[RoleTemplate] = [
             "schedule task", "run every", "run hourly", "run daily", "cron job",
             "schedule job", "run at", "periodic task", "run on schedule",
             "every hour", "every day", "every week",
+            # Extended enterprise phrases
+            "schedule recurring", "recurring task", "scheduled job",
+            "timed task", "run every hour", "run every day",
+            "run periodically", "time-based trigger", "event-based trigger",
+            "schedule workflow", "automate on schedule", "on a schedule",
         ],
         default_sla=SLADefaults(response_seconds=10, max_cost_usd=0.02),
         authority=AuthorityScope(
@@ -417,6 +503,11 @@ ROLE_TEMPLATES: list[RoleTemplate] = [
         trigger_phrases=[
             "supervise workforce", "manage agents", "coordinate roles", "orchestrate",
             "manage workflow", "oversee agents", "coordinate agents", "workforce manager",
+            # Extended enterprise phrases
+            "supervise agents", "agent supervisor", "manage workforce",
+            "oversee workflow", "workflow manager", "orchestrate agents",
+            "track agent progress", "manage agent failures", "re-dispatch agents",
+            "workforce orchestration", "agent coordination", "multi-agent supervisor",
         ],
         default_sla=SLADefaults(response_seconds=600),
         authority=AuthorityScope(
@@ -435,6 +526,11 @@ ROLE_TEMPLATES: list[RoleTemplate] = [
         trigger_phrases=[
             "handoff", "pass to", "then send to", "after that", "hand off",
             "then notify", "then create", "followed by", "then escalate",
+            # Extended enterprise phrases
+            "pass context", "transfer to", "chain to", "then route to",
+            "on completion", "after finishing", "when done", "pass results to",
+            "chain roles", "role handoff", "sequential handoff",
+            "delegate to", "hand over to", "pass off to",
         ],
         default_sla=SLADefaults(response_seconds=10, max_cost_usd=0.01),
         authority=AuthorityScope(
@@ -453,6 +549,11 @@ ROLE_TEMPLATES: list[RoleTemplate] = [
         trigger_phrases=[
             "route to", "prioritise", "prioritize", "route based on", "smart routing",
             "load balance", "route by priority", "conditional routing", "route if",
+            # Extended enterprise phrases
+            "priority routing", "dynamic routing", "intelligent routing",
+            "capability-based routing", "load-based routing", "capacity routing",
+            "route by capability", "route by load", "skill-based routing",
+            "smart dispatch", "priority dispatch", "route high priority",
         ],
         default_sla=SLADefaults(response_seconds=5, max_cost_usd=0.01),
         authority=AuthorityScope(

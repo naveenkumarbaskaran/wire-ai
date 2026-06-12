@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>404 — WIRE Documentation</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0a0a14;
+      color: #94a3b8;
+      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      text-align: center;
+    }
+    .container { padding: 2rem; max-width: 480px; }
+    .wire-logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 2.5rem;
+      text-decoration: none;
+    }
+    .wire-logo-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #22d3ee22, #818cf822);
+      border: 1px solid #22d3ee44;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      font-weight: 900;
+      color: #22d3ee;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+    }
+    .wire-logo-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #e2e8f0;
+      letter-spacing: 0.08em;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+    }
+    .code {
+      font-size: 7rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #22d3ee, #818cf8, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+    }
+    h1 {
+      font-size: 1.5rem;
+      color: #e2e8f0;
+      margin: 1.5rem 0 0.75rem;
+      font-weight: 600;
+    }
+    p { color: #64748b; margin-bottom: 2.5rem; line-height: 1.6; }
+    .back-btn {
+      display: inline-block;
+      color: #22d3ee;
+      text-decoration: none;
+      padding: 0.65rem 1.75rem;
+      border: 1px solid #22d3ee44;
+      border-radius: 8px;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+      font-weight: 500;
+      background: #22d3ee08;
+    }
+    .back-btn:hover {
+      background: #22d3ee18;
+      border-color: #22d3ee99;
+      color: #67e8f9;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="index.html" class="wire-logo">
+      <div class="wire-logo-icon">W</div>
+      <span class="wire-logo-name">WIRE</span>
+    </a>
+    <div class="code">404</div>
+    <h1>Page not found</h1>
+    <p>The page you're looking for doesn't exist or has been moved.</p>
+    <a href="index.html" class="back-btn">Back to docs</a>
+  </div>
+</body>
+</html>
