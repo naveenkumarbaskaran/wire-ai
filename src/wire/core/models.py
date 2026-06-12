@@ -22,6 +22,7 @@ class Backend(str, Enum):
     CREWAI    = "crewai"
     AUTOGEN   = "autogen"
     OPENAI    = "openai"
+    FOUNDRY   = "foundry"
 
 
 class AuditBackend(str, Enum):

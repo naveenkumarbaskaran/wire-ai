@@ -96,4 +96,8 @@ def deploy(
         from wire.adapters.openai import OpenAIAdapter
         return OpenAIAdapter(agent, config)
 
+    if backend_enum == Backend.FOUNDRY:
+        from wire.adapters.foundry import FoundryAdapter
+        return FoundryAdapter(agent, config)
+
     raise AdapterNotFoundError(str(backend_enum))
