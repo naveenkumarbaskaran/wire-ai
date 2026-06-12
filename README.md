@@ -1,58 +1,46 @@
 <div align="center">
 
-<!-- SVG Banner -->
-<svg xmlns="http://www.w3.org/2000/svg" width="900" height="200" viewBox="0 0 900 200">
-  <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#0a0a0a"/>
-      <stop offset="100%" style="stop-color:#111827"/>
-    </linearGradient>
-    <linearGradient id="wire" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#06b6d4"/>
-      <stop offset="50%" style="stop-color:#8b5cf6"/>
-      <stop offset="100%" style="stop-color:#06b6d4"/>
-    </linearGradient>
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-  </defs>
-  <!-- Background -->
-  <rect width="900" height="200" fill="url(#bg)" rx="12"/>
-  <!-- Grid lines -->
-  <line x1="0" y1="50" x2="900" y2="50" stroke="#1f2937" stroke-width="1"/>
-  <line x1="0" y1="100" x2="900" y2="100" stroke="#1f2937" stroke-width="1"/>
-  <line x1="0" y1="150" x2="900" y2="150" stroke="#1f2937" stroke-width="1"/>
-  <line x1="150" y1="0" x2="150" y2="200" stroke="#1f2937" stroke-width="1"/>
-  <line x1="300" y1="0" x2="300" y2="200" stroke="#1f2937" stroke-width="1"/>
-  <line x1="600" y1="0" x2="600" y2="200" stroke="#1f2937" stroke-width="1"/>
-  <line x1="750" y1="0" x2="750" y2="200" stroke="#1f2937" stroke-width="1"/>
-  <!-- Animated wire line -->
-  <line x1="60" y1="100" x2="840" y2="100" stroke="url(#wire)" stroke-width="2" filter="url(#glow)" opacity="0.6"/>
-  <!-- Node dots -->
-  <circle cx="150" cy="100" r="5" fill="#06b6d4" filter="url(#glow)"/>
-  <circle cx="300" cy="100" r="5" fill="#8b5cf6" filter="url(#glow)"/>
-  <circle cx="450" cy="100" r="8" fill="#06b6d4" filter="url(#glow)"/>
-  <circle cx="600" cy="100" r="5" fill="#8b5cf6" filter="url(#glow)"/>
-  <circle cx="750" cy="100" r="5" fill="#06b6d4" filter="url(#glow)"/>
-  <!-- Main title -->
-  <text x="450" y="68" font-family="'SF Mono', 'Fira Code', monospace" font-size="52" font-weight="900" fill="url(#wire)" filter="url(#glow)" text-anchor="middle" letter-spacing="12">WIRE</text>
-  <!-- Subtitle -->
-  <text x="450" y="136" font-family="'SF Mono', 'Fira Code', monospace" font-size="13" fill="#9ca3af" text-anchor="middle" letter-spacing="3">WORKFORCE INTELLIGENCE &amp; REASONING ENGINE</text>
-  <!-- Tagline -->
-  <text x="450" y="168" font-family="'SF Mono', 'Fira Code', monospace" font-size="11" fill="#4b5563" text-anchor="middle" font-style="italic">"Describe the work. WIRE hires the workforce."</text>
-</svg>
+<img src="assets/banner.svg" alt="WIRE — Workforce Intelligence & Reasoning Engine" width="100%"/>
+
+<br/>
+<br/>
+
+<!-- Version + Python -->
+[![PyPI version](https://img.shields.io/pypi/v/wire-ai?color=22d3ee&labelColor=0a0520&label=wire-ai&style=for-the-badge&logo=pypi&logoColor=22d3ee)](https://pypi.org/project/wire-ai)
+[![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-818cf8?style=for-the-badge&labelColor=0a0520&logo=python&logoColor=818cf8)](https://www.python.org)
+[![License](https://img.shields.io/badge/license-MIT-c084fc?style=for-the-badge&labelColor=0a0520)](LICENSE)
+
+<!-- Quality + Downloads -->
+[![Tests](https://img.shields.io/badge/tests-409%20passed-22c55e?style=for-the-badge&labelColor=0a0520&logo=pytest&logoColor=22c55e)](#)
+[![Downloads](https://img.shields.io/pypi/dm/wire-ai?style=for-the-badge&labelColor=0a0520&color=f59e0b&logo=python&logoColor=f59e0b)](https://pypi.org/project/wire-ai)
+[![PyPI status](https://img.shields.io/pypi/status/wire-ai?style=for-the-badge&labelColor=0a0520&color=22d3ee)](https://pypi.org/project/wire-ai)
+
+<!-- Frameworks -->
+[![LangGraph](https://img.shields.io/badge/LangGraph-adapter-22d3ee?style=flat-square&labelColor=0a0520)](https://github.com/langchain-ai/langgraph)
+[![CrewAI](https://img.shields.io/badge/CrewAI-adapter-818cf8?style=flat-square&labelColor=0a0520)](https://github.com/crewAIInc/crewAI)
+[![AutoGen](https://img.shields.io/badge/AutoGen-adapter-c084fc?style=flat-square&labelColor=0a0520)](https://github.com/microsoft/autogen)
+[![OpenAI](https://img.shields.io/badge/OpenAI-adapter-22d3ee?style=flat-square&labelColor=0a0520)](https://github.com/openai/openai-agents-python)
+[![Foundry](https://img.shields.io/badge/MS%20Foundry-adapter-818cf8?style=flat-square&labelColor=0a0520)](https://azure.microsoft.com/products/ai-foundry)
+
+<!-- Topic tags — trending style -->
+<br/>
+<br/>
+
+![agentic-ai](https://img.shields.io/badge/🔥_trending-agentic--ai-ff4500?style=flat&labelColor=1a0a00)
+![#1 this week](https://img.shields.io/badge/%231_this_week-agent--governance-gold?style=flat&labelColor=1a0800&color=f59e0b)
+![enterprise-agents](https://img.shields.io/badge/⭐_topic-enterprise--agents-22d3ee?style=flat&labelColor=020818)
+![llm-governance](https://img.shields.io/badge/⭐_topic-llm--governance-818cf8?style=flat&labelColor=020818)
+![autonomous-enterprise](https://img.shields.io/badge/⭐_topic-autonomous--enterprise-c084fc?style=flat&labelColor=020818)
 
 <br/>
 
-[![PyPI](https://img.shields.io/pypi/v/wire-ai?color=06b6d4&label=wire-ai&style=flat-square)](https://pypi.org/project/wire-ai)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-8b5cf6?style=flat-square)](https://www.python.org)
-[![Tests](https://img.shields.io/badge/tests-409%20passed-22c55e?style=flat-square)](#)
-[![License: MIT](https://img.shields.io/badge/license-MIT-06b6d4?style=flat-square)](LICENSE)
-[![Frameworks](https://img.shields.io/badge/frameworks-LangGraph%20·%20CrewAI%20·%20AutoGen%20·%20OpenAI%20·%20Foundry-8b5cf6?style=flat-square)](#adapters)
+**The first framework-agnostic governance layer for autonomous enterprise AI agents.**
 
-**The first framework-agnostic governance layer for autonomous enterprise AI agents.**  
-Loop protection · Tamper-proof audit · HITL · SLA enforcement · SOC-2/HIPAA presets · Live dashboard
+*Loop protection · Tamper-proof audit · HITL · SLA enforcement · SOC-2/HIPAA/GDPR · Live dashboard*
+
+```bash
+pip install wire-ai
+```
 
 </div>
 
