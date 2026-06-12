@@ -47,7 +47,7 @@ from wire.plugins import WIREPlugin, PluginRegistry, get_plugin_registry
 from wire.plugins.agentlens_plugin import AgentLensPlugin
 from wire.plugins.tokmon_plugin import TokmonPlugin
 
-__version__ = "1.0.0"
+__version__ = "1.3.0"
 __all__ = [
     # Entry points
     "deploy", "hire", "hire_async",
