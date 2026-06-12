@@ -149,32 +149,13 @@ wire dashboard --port 8080 --audit wire-audit.jsonl
 # Opens http://localhost:8080 — live workforce status for engineers and executives
 ```
 
-> **Terminal preview** *(asciinema recording — run `asciinema play` locally)*
+<div align="center">
+<img src="wire-demo.gif" alt="WIRE terminal demo — hire, audit, replay" width="860"/>
+</div>
+
+> The GIF above shows: **HIRE** assembling a workforce from plain language → **`wire audit`** verifying the tamper-proof chain → **`wire replay`** rewinding a past run step-by-step.
 >
-> ```
-> WIRE Workforce Dashboard                          [live · 14:32:07]
-> ══════════════════════════════════════════════════════════════════════
-> Workforce: aws-cost-monitor          Backend: langgraph
-> Budget: $0.23/$1.00 today  [█████████████░░░░░░░] 23%
->
-> ROLE              STATUS      CONFIDENCE  COST     SLA    LAST ACT
-> cost_monitor      ● running   94%         $0.04    ✓ ok   14:31:52
-> anomaly_detector  ● running   87%         $0.11    ✓ ok   14:32:01
-> ticket_creator    ○ idle      —           $0.06    ✓ ok   14:28:33
-> human_escalator   ⏸ waiting   —           —        ⚠ 28m  14:31:59
->
-> HITL QUEUE (1 pending)
->   [#001] Approve Jira P1 creation — $847 anomaly detected
->   → approve / reject / modify    [expires in 2m]
->
-> RECENT EVENTS
->   14:32:01  anomaly_detector  FLAGGED cost spike +$847 (us-east-1)
->   14:31:59  human_escalator   HITL requested → slack:#ops-channel
->   14:28:33  ticket_creator    P2 created INC-4821 (idempotent skip ×1)
-> ══════════════════════════════════════════════════════════════════════
-> ```
->
-> *To record your own: `asciinema rec wire-demo.cast` then run `wire dashboard`*
+> *Record your own: `asciinema rec wire-demo.cast` then `bash demo.sh`*
 
 ---
 
