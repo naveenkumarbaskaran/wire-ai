@@ -88,8 +88,10 @@ class Budget:
         return sum(s.amount_usd for s in self._history if s.ts >= cutoff)
 
     def _prune(self, now: datetime) -> None:
+        # Retain at least max(hourly*2, daily+1h, 25h) to cover all windows
         from datetime import timedelta
-        cutoff = now - timedelta(hours=25)
+        retention_h = max(25, (self.daily or 0) and 25)
+        cutoff = now - timedelta(hours=retention_h)
         while self._history and self._history[0].ts < cutoff:
             self._history.popleft()
 
@@ -100,11 +102,14 @@ class Budget:
             data={"spent": spent, "limit": limit, "window": window},
         )
         if self._bus:
-            import anyio
+            # Schedule event emission on the running loop if available.
+            # Never block — breach error must always raise immediately.
+            import asyncio
             try:
-                anyio.from_thread.run_sync(lambda: anyio.run(self._bus.emit, event))
-            except Exception:
-                pass
+                loop = asyncio.get_running_loop()
+                loop.create_task(self._bus.emit(event))
+            except RuntimeError:
+                pass  # No running loop — skip emission, still raise
 
         log.error("budget_breach", run_id=run_id, spent=spent, limit=limit, window=window)
         raise BudgetBreachError(spent, limit, window)

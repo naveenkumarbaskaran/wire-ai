@@ -328,7 +328,7 @@ class FoundryAdapter:
 
             # Extract cost from run.usage
             usage = getattr(foundry_run, "usage", None)
-            if usage and sla_ctx:
+            if usage and sla is not None:
                 cost = self._calc_cost(usage)
                 budget.charge(run_id=run_id, amount_usd=cost)
                 if sla:

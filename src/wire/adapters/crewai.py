@@ -187,17 +187,16 @@ class CrewAIAdapter:
 
             def make_cb(t=task, orig=original_cb):
                 def cb(output: Any) -> Any:
-                    guard.tick(cost_usd=0.0)  # tick per task completion
+                    guard.tick(cost_usd=0.0)
                     import asyncio
                     try:
-                        loop = asyncio.get_event_loop()
-                        if loop.is_running():
-                            asyncio.ensure_future(audit.write(
-                                "task_complete",
-                                data={"task": str(getattr(t, "description", ""))[:60]},
-                            ))
-                    except Exception:
-                        pass
+                        loop = asyncio.get_running_loop()
+                        loop.create_task(audit.write(
+                            "task_complete",
+                            data={"task": str(getattr(t, "description", ""))[:60]},
+                        ))
+                    except RuntimeError:
+                        pass  # No running loop — skip
                     if orig:
                         return orig(output)
                     return output

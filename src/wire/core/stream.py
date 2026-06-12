@@ -195,11 +195,12 @@ class GuardedStream:
             raise
 
         self._seq += 1
-        self._stats.total_chunks += 1
 
-        # Skip already-seen chunks on resume
+        # Skip already-seen chunks on resume — don't count them as received
         if self._seq <= self._resume_from_seq:
             return await self.__anext__()
+
+        self._stats.total_chunks += 1
 
         # Extract cost if cost_fn provided
         cost = self._cost_fn(chunk) if self._cost_fn else 0.0
@@ -318,8 +319,12 @@ class StreamGuard:
             resume_from_seq=resume_from_seq,
             cost_fn=self._cost_fn,
         )
+        # Store reference so last_stats is populated after context exits
+        self._current_stream = stream
         return stream
 
     @property
     def last_stats(self) -> StreamStats | None:
+        if hasattr(self, "_current_stream"):
+            return self._current_stream.stats
         return self._last_stats

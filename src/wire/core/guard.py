@@ -91,13 +91,12 @@ class LoopGuard:
             },
         )
         if self._bus:
-            import anyio
+            import asyncio
             try:
-                anyio.from_thread.run_sync(
-                    lambda: anyio.run(self._bus.emit, event)
-                )
-            except Exception:
-                pass  # never let event emission block the breach error
+                loop = asyncio.get_running_loop()
+                loop.create_task(self._bus.emit(event))
+            except RuntimeError:
+                pass  # No running loop — skip emission, still raise
 
         log.error(
             "loop_breach",

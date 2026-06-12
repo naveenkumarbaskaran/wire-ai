@@ -81,17 +81,6 @@ class WIRETool:
 
     async def __call__(self, *args: Any, run_id: str = "wire-tool", **kwargs: Any) -> Any:
         """Invoke the tool with WIRE governance."""
-        # Build idempotency key from kwargs
-        if self.idempotent and self._guard:
-            key = IdempotencyGuard.make_key(self.name, kwargs)
-            if await self._guard.is_duplicate(key):
-                log.warning("tool_dedup", tool=self.name, key=key[:12])
-                result, _ = await self._guard.call(
-                    key=key, fn=lambda: self._fn(*args, **kwargs),
-                    run_id=run_id, tool=self.name,
-                )
-                return result
-
         # Emit TOOL_CALL event
         if self._bus:
             await self._bus.emit(WIREEvent(
@@ -101,6 +90,7 @@ class WIRETool:
             ))
 
         if self.idempotent and self._guard:
+            # IdempotencyGuard.call() handles the duplicate check internally
             key = IdempotencyGuard.make_key(self.name, kwargs)
             result, _ = await self._guard.call(
                 key=key, fn=lambda: self._fn(*args, **kwargs),

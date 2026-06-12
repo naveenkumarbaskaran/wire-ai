@@ -68,6 +68,16 @@ class EventQuery:
     since_ts: datetime | None = None
     limit: int = 1000
 
+    def __post_init__(self) -> None:
+        if self.limit <= 0:
+            raise ValueError(f"EventQuery.limit must be > 0, got {self.limit}")
+        if self.since_seq < 0:
+            raise ValueError(f"EventQuery.since_seq must be >= 0, got {self.since_seq}")
+        if self.until_seq is not None and self.until_seq < self.since_seq:
+            raise ValueError(
+                f"EventQuery.until_seq ({self.until_seq}) must be >= since_seq ({self.since_seq})"
+            )
+
 
 @dataclass
 class RunSummary:
@@ -303,12 +313,16 @@ class EventStore(DurableEventBus):
         When multiple agents run in parallel (agno/AutoGen pattern),
         events arrive out of order by wall-clock time. Vector clocks
         let consumers reconstruct the causal sequence.
+        Thread-safe: uses asyncio lock to prevent concurrent clock increments.
         """
-        # Increment logical clock for this run
-        self._vector_clocks[event.run_id] += 1
-        clock = self._vector_clocks[event.run_id]
+        if not hasattr(self, "_vclock_lock"):
+            import asyncio
+            self._vclock_lock = asyncio.Lock()
 
-        # Tag event with vector clock
+        async with self._vclock_lock:
+            self._vector_clocks[event.run_id] += 1
+            clock = self._vector_clocks[event.run_id]
+
         tagged_event = event.model_copy(
             update={"data": {**event.data, "_vclock": clock}}
         )

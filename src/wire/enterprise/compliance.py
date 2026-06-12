@@ -191,12 +191,19 @@ class CompliancePreset(str, Enum):
     NIST_AI  = "nist_ai"
 
     def config(self) -> ComplianceConfig:
-        return {
+        _map = {
             CompliancePreset.SOC2:    SOC2_CONFIG,
             CompliancePreset.HIPAA:   HIPAA_CONFIG,
             CompliancePreset.GDPR:    GDPR_CONFIG,
             CompliancePreset.NIST_AI: NIST_AI_RMF_CONFIG,
-        }[self]
+        }
+        cfg = _map.get(self)
+        if cfg is None:
+            raise ValueError(
+                f"No ComplianceConfig registered for preset '{self}'. "
+                "Add an entry to the _map in CompliancePreset.config()."
+            )
+        return cfg
 
     def summary(self) -> str:
         cfg = self.config()

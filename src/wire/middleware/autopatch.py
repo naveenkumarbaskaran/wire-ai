@@ -95,27 +95,37 @@ def patch(
         List of patched framework names.
     """
     global _patch_config
+    _shared_bus = bus or EventBus()
+    # Shared Budget across ALL patched frameworks — unified cost ceiling
+    from wire.core.budget import Budget
+    _shared_budget = Budget(
+        max_usd=max_cost_usd,
+        hourly=hourly_budget_usd,
+        bus=_shared_bus,
+    ) if (max_cost_usd or hourly_budget_usd) else None
+
     _patch_config.update({
         "enabled": True,
         "audit_path": audit_path,
         "max_cost_usd": max_cost_usd,
         "hourly_budget_usd": hourly_budget_usd,
         "stall_timeout_s": stall_timeout_s,
-        "bus": bus or EventBus(),
+        "bus": _shared_bus,
+        "budget": _shared_budget,
     })
 
     patched = []
 
     if langchain:
-        if _patch_langchain(audit_path, max_cost_usd, stall_timeout_s, bus):
+        if _patch_langchain(audit_path, max_cost_usd, stall_timeout_s, _shared_bus):
             patched.append("langchain")
 
     if llama_index:
-        if _patch_llama_index(audit_path, max_cost_usd, bus):
+        if _patch_llama_index(audit_path, max_cost_usd, _shared_bus):
             patched.append("llama_index")
 
     if openai:
-        if _patch_openai(audit_path, max_cost_usd, bus):
+        if _patch_openai(audit_path, max_cost_usd, _shared_bus):
             patched.append("openai")
 
     if anthropic:

@@ -192,8 +192,7 @@ class LangGraphAdapter:
                 yield chunk
 
         await audit.write("workforce_end", data={
-            "total_chunks": sg.wrap(self._graph.astream(input)).stats.total_chunks
-            if False else 0,  # stats captured inside GuardedStream
+            "total_chunks": sg.last_stats.total_chunks if sg.last_stats else 0,
             "total_cost_usd": budget.total_usd,
         })
 

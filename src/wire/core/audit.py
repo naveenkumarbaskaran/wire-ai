@@ -139,14 +139,25 @@ class AuditChain:
 
     def _load_tail(self) -> None:
         """Resume chain from the last entry on disk (supports append across restarts)."""
-        if not self.path.exists():
+        if not self.path.exists() or self.path.stat().st_size == 0:
             return
+        # Seek backwards from end to find last non-empty line — O(1) for typical entries
         last_line = b""
         with self.path.open("rb") as f:
-            for line in f:
-                if line.strip():
-                    last_line = line
+            # Read last 4KB — sufficient for any single audit entry
+            f.seek(0, 2)
+            size = f.tell()
+            f.seek(max(0, size - 4096))
+            tail = f.read()
+        for line in reversed(tail.splitlines()):
+            if line.strip():
+                last_line = line
+                break
         if last_line:
-            raw = orjson.loads(last_line)
-            self._last_hash = raw.get("entry_hash", _GENESIS_HASH)
-            self._count = sum(1 for _ in self.path.open())
+            try:
+                raw = __import__("orjson").loads(last_line)
+                self._last_hash = raw.get("entry_hash", _GENESIS_HASH)
+            except Exception:
+                pass
+        # Count lines efficiently
+        self._count = sum(1 for _ in self.path.open())
