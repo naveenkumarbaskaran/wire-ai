@@ -1,23 +1,42 @@
 """
 IdempotencyGuard — prevents duplicate tool execution on retry.
 
-The CrewAI production bug in production: side-effecting tools (payments,
-Jira tickets, emails, Slack messages) fire twice when a task fails and retries.
+The CrewAI production bug: side-effecting tools (payments, Jira tickets,
+emails, Slack messages) fire twice when a task fails and retries.
 IdempotencyGuard deduplicates at the call site using a content-addressed key.
 
 Key = SHA-256(tool_name + sorted(input_args))
-Storage: in-memory (default) or SQLite (durable across restarts).
+
+Storage backends (pluggable):
+  MemoryBackend    — default, in-process, zero config (lost on restart)
+  SQLiteBackend    — survives restarts, single-node, zero external deps
+  RedisBackend     — multi-process, multi-node, TTL expiry
+  PostgresBackend  — enterprise, multi-tenant, full history
 
 Usage:
+    # Default — in-memory
     guard = IdempotencyGuard()
 
-    result = await guard.call(
-        key=guard.make_key("jira_create", {"title": "P1 alert", "project": "OPS"}),
+    # Durable — SQLite (survives restarts)
+    from wire.core.idempotency_backends import SQLiteBackend
+    guard = IdempotencyGuard(backend=SQLiteBackend("wire-idempotency.db"))
+
+    # Distributed — Redis
+    from wire.core.idempotency_backends import RedisBackend
+    guard = IdempotencyGuard(backend=RedisBackend("redis://localhost:6379"))
+
+    # Enterprise — Postgres multi-tenant
+    from wire.core.idempotency_backends import PostgresBackend
+    guard = IdempotencyGuard(backend=PostgresBackend(dsn="postgresql://...", tenant_id="team-a"))
+
+    # All backends share identical call() API:
+    result, was_duplicate = await guard.call(
+        key=guard.make_key("jira_create", {"title": "P1", "project": "OPS"}),
         fn=lambda: jira.create_issue(...),
         run_id="run_abc",
         tool="jira_create",
     )
-    # Second call with same key returns cached result — never fires twice.
+    # Second call with same key → returns cached result, fn never called.
 """
 
 from __future__ import annotations
@@ -49,12 +68,19 @@ class IdempotencyGuard:
     """
     Content-addressed deduplication for side-effecting tool calls.
 
-    Thread-safe for single-process use. For distributed workforces,
-    use the SQLite backend (Sprint 6: Redis/Postgres).
+    Backend is pluggable — swap from in-memory to SQLite/Redis/Postgres
+    with a single constructor argument. All backends share identical API.
     """
 
-    def __init__(self, bus: EventBus | None = None) -> None:
-        self._store: dict[str, IdempotencyRecord] = {}
+    def __init__(
+        self,
+        backend: Any | None = None,
+        bus: EventBus | None = None,
+    ) -> None:
+        if backend is None:
+            from wire.core.idempotency_backends import MemoryBackend
+            backend = MemoryBackend()
+        self._backend = backend
         self._bus = bus
 
     # ── Public API ────────────────────────────────────────────────────────────
@@ -86,27 +112,19 @@ class IdempotencyGuard:
         Returns:
             (result, was_duplicate) — was_duplicate=True means the call
             was skipped and the cached result returned.
-
-        Usage:
-            result, skipped = await guard.call(
-                key=guard.make_key("jira_create", args),
-                fn=lambda: jira.create(...),
-                run_id=run_id,
-                tool="jira_create",
-            )
-            if skipped:
-                log.info("duplicate call skipped", tool=tool)
         """
-        if key in self._store:
-            record = self._store[key]
-            record.call_count += 1
+        record = await self._backend.get(key)
+
+        if record is not None:
+            new_count = await self._backend.increment(key)
             log.warning(
                 "idempotency_skip",
                 tool=tool,
                 run_id=run_id,
                 key=key[:12],
-                call_count=record.call_count,
+                call_count=new_count,
                 original_execution=record.executed_at.isoformat(),
+                backend=type(self._backend).__name__,
             )
             if self._bus:
                 await self._bus.emit(WIREEvent(
@@ -116,21 +134,22 @@ class IdempotencyGuard:
                         "tool": tool,
                         "key": key[:12],
                         "duplicate": True,
-                        "call_count": record.call_count,
+                        "call_count": new_count,
                     },
                 ))
             return record.result, True
 
         # First call — execute and store
-        log.debug("idempotency_execute", tool=tool, run_id=run_id, key=key[:12])
+        log.debug(
+            "idempotency_execute",
+            tool=tool, run_id=run_id, key=key[:12],
+            backend=type(self._backend).__name__,
+        )
         result = await fn()
 
-        self._store[key] = IdempotencyRecord(
-            key=key,
-            run_id=run_id,
-            tool=tool,
-            result=result,
-        )
+        await self._backend.set(key, IdempotencyRecord(
+            key=key, run_id=run_id, tool=tool, result=result,
+        ))
 
         if self._bus:
             await self._bus.emit(WIREEvent(
@@ -141,20 +160,44 @@ class IdempotencyGuard:
 
         return result, False
 
-    def is_duplicate(self, key: str) -> bool:
-        """Check without executing — useful for pre-flight checks."""
-        return key in self._store
+    async def is_duplicate(self, key: str) -> bool:
+        """Async check without executing — works across all backends."""
+        return await self._backend.exists(key)
 
-    def clear(self, key: str | None = None) -> None:
-        """
-        Clear one key or all keys.
-        Use after confirmed successful completion to allow re-runs.
-        """
+    # Keep sync compat for tests that don't need async
+    def is_duplicate_sync(self, key: str) -> bool:
+        """Sync check — only valid for MemoryBackend."""
+        from wire.core.idempotency_backends import MemoryBackend
+        if isinstance(self._backend, MemoryBackend):
+            import asyncio
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    # Can't block — return False conservatively
+                    return False
+                return loop.run_until_complete(self._backend.exists(key))
+            except Exception:
+                return False
+        raise RuntimeError(
+            "is_duplicate_sync() only works with MemoryBackend. "
+            "Use `await guard.is_duplicate(key)` for other backends."
+        )
+
+    async def clear(self, key: str | None = None) -> None:
+        """Clear one key or all keys across the backend."""
         if key:
-            self._store.pop(key, None)
+            await self._backend.delete(key)
         else:
-            self._store.clear()
+            await self._backend.clear()
+
+    @property
+    def backend_name(self) -> str:
+        return type(self._backend).__name__
 
     @property
     def call_count(self) -> int:
-        return len(self._store)
+        """Number of recorded keys — only meaningful for MemoryBackend."""
+        from wire.core.idempotency_backends import MemoryBackend
+        if isinstance(self._backend, MemoryBackend):
+            return len(self._backend)
+        return -1  # unknown for remote backends

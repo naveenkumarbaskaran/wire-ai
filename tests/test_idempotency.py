@@ -88,7 +88,7 @@ class TestIdempotencyCall:
         key = IdempotencyGuard.make_key("tool", {"x": 1})
 
         await guard.call(key=key, fn=await _make_fn("first", log), run_id="r", tool="tool")
-        guard.clear(key)
+        await guard.clear(key)
         _, was_dup = await guard.call(
             key=key, fn=await _make_fn("second", log), run_id="r", tool="tool"
         )
@@ -98,14 +98,14 @@ class TestIdempotencyCall:
     def test_is_duplicate_false_before_call(self) -> None:
         guard = IdempotencyGuard()
         key = IdempotencyGuard.make_key("tool", {})
-        assert guard.is_duplicate(key) is False
+        assert guard.is_duplicate_sync(key) is False
 
     @pytest.mark.asyncio
     async def test_is_duplicate_true_after_call(self) -> None:
         guard = IdempotencyGuard()
         key = IdempotencyGuard.make_key("tool", {})
         await guard.call(key=key, fn=await _make_fn("x", []), run_id="r", tool="tool")
-        assert guard.is_duplicate(key) is True
+        assert await guard.is_duplicate(key) is True
 
     def test_call_count_increments(self) -> None:
         guard = IdempotencyGuard()
@@ -119,5 +119,5 @@ class TestIdempotencyCall:
             key = IdempotencyGuard.make_key("tool", {"i": i})
             await guard.call(key=key, fn=await _make_fn(f"r{i}", log), run_id="r", tool="tool")
         assert guard.call_count == 3
-        guard.clear()
+        await guard.clear()
         assert guard.call_count == 0

@@ -13,6 +13,9 @@ from wire.core.hitl import (
     HITLTimeoutError, HITLRejectedError, TimeoutAction,
 )
 from wire.core.idempotency import IdempotencyGuard
+from wire.core.idempotency_backends import (
+    MemoryBackend, SQLiteBackend, RedisBackend, PostgresBackend, IdempotencyStore,
+)
 from wire.core.models import Risk, DeployConfig
 from wire.core.sla import SLATracker, SLABreachError
 from wire.deploy import deploy
@@ -41,6 +44,7 @@ __all__ = [
     "HITLGate", "HITLChannel", "HITLAction", "HITLDecision",
     "HITLTimeoutError", "HITLRejectedError", "TimeoutAction",
     "IdempotencyGuard",
+    "MemoryBackend", "SQLiteBackend", "RedisBackend", "PostgresBackend", "IdempotencyStore",
     "SLATracker", "SLABreachError",
     # Sprint 3
     "RoleTemplate", "RoleCategory", "ROLE_TEMPLATES",
