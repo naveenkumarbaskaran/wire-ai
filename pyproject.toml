@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "wire-ai"
-version = "0.1.0"
+version = "0.2.0"
 description = "Workforce Intelligence & Reasoning Engine — framework-agnostic governance layer for autonomous enterprise AI agents"
 readme = "README.md"
 license = { text = "MIT" }
