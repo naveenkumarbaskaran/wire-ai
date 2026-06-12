@@ -7,14 +7,14 @@ name = "wire-ai"
 version = "1.3.0"
 description = "Workforce Intelligence & Reasoning Engine — framework-agnostic governance layer for autonomous enterprise AI agents"
 readme = "README.md"
-license = { text = "MIT" }
+license = { text = "Apache-2.0" }
 requires-python = ">=3.11"
 authors = [{ name = "Naveen Kumar Baskaran", email = "naveen.kumar.baskaran@sap.com" }]
 keywords = ["ai", "agents", "llm", "governance", "enterprise", "langgraph", "crewai", "autogen", "a2a", "mcp"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Topic :: Software Development :: Libraries",

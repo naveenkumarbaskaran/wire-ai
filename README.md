@@ -8,7 +8,7 @@
 <!-- Version + Python -->
 [![PyPI version](https://img.shields.io/pypi/v/wire-ai?color=22d3ee&labelColor=0a0520&label=wire-ai&style=for-the-badge&logo=pypi&logoColor=22d3ee)](https://pypi.org/project/wire-ai)
 [![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-818cf8?style=for-the-badge&labelColor=0a0520&logo=python&logoColor=818cf8)](https://www.python.org)
-[![License](https://img.shields.io/badge/license-MIT-c084fc?style=for-the-badge&labelColor=0a0520)](LICENSE)
+[![License](https://img.shields.io/badge/license-Apache%202.0-c084fc?style=for-the-badge&labelColor=0a0520)](LICENSE)
 
 <!-- Quality + Status -->
 [![Tests](https://img.shields.io/badge/tests-409%20passed-22c55e?style=for-the-badge&labelColor=0a0520&logo=pytest&logoColor=22c55e)](#)
@@ -510,7 +510,7 @@ WIRE assembles the governance layer from across the entire ecosystem:
 
 <div align="center">
 
-**MIT License** · [PyPI](https://pypi.org/project/wire-ai) · [Issues](https://github.com/naveenkumarbaskaran/wire-ai/issues)
+**Apache 2.0 License** · [PyPI](https://pypi.org/project/wire-ai) · [Issues](https://github.com/naveenkumarbaskaran/wire-ai/issues)
 
 *The most governance-complete agent framework layer in the ecosystem.*
 
