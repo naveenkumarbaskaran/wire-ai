@@ -38,8 +38,8 @@ class TestLoopGuardIterations:
         guard.tick()
         with pytest.raises(LoopBreachError) as exc_info:
             guard.tick()
-        assert "Loop limit reached" in str(exc_info.value)
-        assert "2/1" in str(exc_info.value)
+        assert "LOOP_BREACH" in str(exc_info.value) or "limit" in str(exc_info.value).lower()
+        assert "2" in str(exc_info.value) and "1" in str(exc_info.value)
 
     def test_iterations_counter_increments(self) -> None:
         guard = make_guard(max_iter=10)

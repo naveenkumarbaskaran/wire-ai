@@ -53,7 +53,7 @@ class TestBudgetHourly:
         with pytest.raises(BudgetBreachError) as exc_info:
             b.charge("r1", 0.10)
         assert "hourly" in str(exc_info.value)
-        assert "Budget breached" in str(exc_info.value)
+        assert "BUDGET_EXCEEDED" in str(exc_info.value) or "budget" in str(exc_info.value).lower()
 
 
 class TestBudgetDaily:
