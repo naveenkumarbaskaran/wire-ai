@@ -8,7 +8,6 @@ The suite is skipped gracefully if slack-sdk is not installed.
 from __future__ import annotations
 
 import asyncio
-import importlib
 from datetime import datetime, timedelta, timezone
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -16,13 +15,18 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 # ---------------------------------------------------------------------------
-# Skip guard — entire module is skipped if slack-sdk is not available.
+# Skip guard — entire module is skipped if slack-sdk is not available
+# or if the async client submodule can't be imported.
 # ---------------------------------------------------------------------------
-slack_sdk_available = importlib.util.find_spec("slack_sdk") is not None
+try:
+    from slack_sdk.web.async_client import AsyncWebClient  # noqa: F401
+    slack_sdk_available = True
+except ImportError:
+    slack_sdk_available = False
 
 pytestmark = pytest.mark.skipif(
     not slack_sdk_available,
-    reason="slack-sdk not installed (pip install 'wire-ai[slack]')",
+    reason="slack-sdk async client not available (pip install 'wire-ai[slack]')",
 )
 
 # ---------------------------------------------------------------------------
