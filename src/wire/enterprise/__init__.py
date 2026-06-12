@@ -13,6 +13,9 @@ from wire.enterprise.multitenancy import (
 from wire.enterprise.backends import (
     S3AuditBackend, PostgresAuditBackend, AuditBackendError,
 )
+from wire.enterprise.blueprints import (
+    AgentBlueprint, BlueprintRegistry, BlueprintNotFoundError, get_registry,
+)
 
 __all__ = [
     # Compliance
@@ -24,4 +27,6 @@ __all__ = [
     "Tenant", "TenantRegistry", "TenantNotFoundError",
     # Backends
     "S3AuditBackend", "PostgresAuditBackend", "AuditBackendError",
+    # Blueprints
+    "AgentBlueprint", "BlueprintRegistry", "BlueprintNotFoundError", "get_registry",
 ]

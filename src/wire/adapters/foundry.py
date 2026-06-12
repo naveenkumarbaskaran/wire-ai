@@ -97,6 +97,9 @@ class FoundryAdapter:
         self._idempotency = IdempotencyGuard(bus=self._bus)
         self._drift = DriftDetector()
 
+        # Blueprint ID — governs this agent type for org-level Conditional Access
+        self._blueprint_id: str | None = config.extra.get("blueprint_id")
+
         # Resolve client + agent_id from whatever was passed to wire.deploy()
         if isinstance(agent_or_config, dict):
             self._endpoint = agent_or_config.get("endpoint", "")
@@ -137,14 +140,31 @@ class FoundryAdapter:
         client = await self._get_client()
         message = inputs.get("message", inputs.get("task", str(inputs)))
 
-        await audit.write("workforce_start", data={
+        # Resolve blueprint name if a blueprint_id is configured
+        blueprint_name: str | None = None
+        if self._blueprint_id:
+            try:
+                from wire.enterprise.blueprints import get_registry
+                _bp = get_registry().get(self._blueprint_id)
+                blueprint_name = _bp.name
+            except Exception:
+                blueprint_name = None
+
+        workforce_start_data: dict[str, Any] = {
             "backend": "foundry",
             "agent_id": self._agent_id,
             "message_preview": message[:80],
-        })
+        }
+        if self._blueprint_id:
+            workforce_start_data["blueprint_id"] = self._blueprint_id
+            if blueprint_name:
+                workforce_start_data["blueprint_name"] = blueprint_name
+
+        await audit.write("workforce_start", data=workforce_start_data)
         await self._bus.emit(WIREEvent(
             kind=EventKind.WORKFORCE_START, run_id=run_id,
-            data={"backend": "foundry", "agent_id": self._agent_id},
+            data={"backend": "foundry", "agent_id": self._agent_id,
+                  **({"blueprint_id": self._blueprint_id} if self._blueprint_id else {})},
         ))
 
         start = time.perf_counter()
@@ -230,6 +250,18 @@ class FoundryAdapter:
             "  hitl           : wire.HITLGate (upgrades requires_action pattern)",
             "  sla            : wire.SLATracker (not available natively in Foundry)",
         ]
+        if self._blueprint_id:
+            blueprint_name: str | None = None
+            try:
+                from wire.enterprise.blueprints import get_registry
+                _bp = get_registry().get(self._blueprint_id)
+                blueprint_name = _bp.name
+            except Exception:
+                blueprint_name = None
+            bp_label = f"{self._blueprint_id}"
+            if blueprint_name:
+                bp_label = f"{blueprint_name} ({self._blueprint_id})"
+            lines.append(f"  blueprint      : {bp_label}")
         return "\n".join(lines)
 
     # ── Run execution ─────────────────────────────────────────────────────────

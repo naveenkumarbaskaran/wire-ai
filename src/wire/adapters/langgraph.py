@@ -27,6 +27,7 @@ from wire.core.errors import AdapterNotFoundError
 from wire.core.events import EventBus, EventKind, WIREEvent
 from wire.core.guard import LoopGuard
 from wire.core.models import DeployConfig
+from wire.plugins import get_plugin_registry
 
 log = structlog.get_logger(__name__)
 
@@ -104,6 +105,14 @@ class LangGraphAdapter:
                     data={"node": node_name, "iteration": guard.iterations, "cost_usd": cost},
                 ))
 
+                registry = get_plugin_registry()
+                await registry.emit_step_start(
+                    run_id=run_id, role=node_name, iteration=guard.iterations
+                )
+                await registry.emit_step_end(
+                    run_id=run_id, role=node_name, cost_usd=cost, tokens_in=0, tokens_out=0
+                )
+
                 result = node_output
 
         except Exception as exc:
@@ -120,6 +129,14 @@ class LangGraphAdapter:
             kind=EventKind.WORKFORCE_END, run_id=run_id,
             data={"elapsed_s": elapsed, "total_cost_usd": budget.total_usd},
         ))
+
+        registry = get_plugin_registry()
+        await registry.emit_workforce_end(
+            run_id=run_id,
+            total_cost=budget.total_usd,
+            iterations=guard.iterations,
+        )
+
         log.info(
             "run_complete",
             run_id=run_id,

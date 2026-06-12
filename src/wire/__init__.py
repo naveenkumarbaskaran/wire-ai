@@ -24,11 +24,28 @@ from wire.hire.templates import RoleTemplate, RoleCategory, ROLE_TEMPLATES
 from wire.visibility.dashboard import WorkforceDashboard, AgentStatus
 from wire.visibility.drift import DriftDetector, DriftAlert
 from wire.visibility.ledger import CostLedger
+
+try:
+    from wire.visibility.web_dashboard import WebDashboard
+except ImportError:
+    WebDashboard = None  # type: ignore[assignment,misc]
+
 from wire.core.policy import PolicyEnforcer, PolicyViolationError, ToolCallContext
 from wire.enterprise.compliance import CompliancePreset, ComplianceConfig
 from wire.enterprise.rbac import RBACPolicy, Permission, Actor, PermissionDeniedError
 from wire.enterprise.multitenancy import Tenant, TenantRegistry
 from wire.enterprise.backends import S3AuditBackend, PostgresAuditBackend
+
+try:
+    from wire.enterprise.blueprints import AgentBlueprint, BlueprintRegistry
+except ImportError:
+    AgentBlueprint = None  # type: ignore[assignment,misc]
+    BlueprintRegistry = None  # type: ignore[assignment,misc]
+
+from wire.channels import SlackHITLChannel
+from wire.plugins import WIREPlugin, PluginRegistry, get_plugin_registry
+from wire.plugins.agentlens_plugin import AgentLensPlugin
+from wire.plugins.tokmon_plugin import TokmonPlugin
 
 __version__ = "1.0.0"
 __all__ = [
@@ -52,6 +69,7 @@ __all__ = [
     "WorkforceDashboard", "AgentStatus",
     "DriftDetector", "DriftAlert",
     "CostLedger",
+    "WebDashboard",
     "TimeTravel",
     "PolicyEnforcer", "PolicyViolationError", "ToolCallContext",
     # Sprint 6 — Enterprise
@@ -59,4 +77,14 @@ __all__ = [
     "RBACPolicy", "Permission", "Actor", "PermissionDeniedError",
     "Tenant", "TenantRegistry",
     "S3AuditBackend", "PostgresAuditBackend",
+    # Blueprints
+    "AgentBlueprint", "BlueprintRegistry",
+    # Channels
+    "SlackHITLChannel",
+    # Plugins
+    "WIREPlugin",
+    "PluginRegistry",
+    "get_plugin_registry",
+    "AgentLensPlugin",
+    "TokmonPlugin",
 ]

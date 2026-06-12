@@ -117,6 +117,13 @@ class HITLGate:
         )
         if decision.action == HITLAction.APPROVE:
             ...
+
+    Slack channel:
+        gate = HITLGate(
+            channel="slack:#ops-approvals",   # or HITLChannel.SLACK + slack_channel=
+            slack_channel="#ops-approvals",
+            slack_token="xoxb-...",           # or set SLACK_BOT_TOKEN env var
+        )
     """
 
     def __init__(
@@ -128,14 +135,28 @@ class HITLGate:
         timeout_action: TimeoutAction = TimeoutAction.ESCALATE,
         options: list[str] | None = None,
         bus: EventBus | None = None,
+        slack_channel: str | None = None,
+        slack_token: str | None = None,
     ) -> None:
+        # Handle "slack:#channel-name" shorthand — extract channel name and
+        # coerce the enum to HITLChannel.SLACK
+        raw = channel if isinstance(channel, str) else channel.value
+        if raw.startswith("slack:"):
+            self.channel = HITLChannel.SLACK
+            # Only use the embedded channel if slack_channel was not supplied
+            if slack_channel is None:
+                slack_channel = raw[len("slack:"):]
+        else:
+            self.channel = HITLChannel(raw) if isinstance(channel, str) else channel
+
         self.trigger = trigger
-        self.channel = HITLChannel(channel) if isinstance(channel, str) else channel
         self.timeout_minutes = timeout_minutes
         self.timeout_action = timeout_action
         self.options = options or ["approve", "reject", "modify"]
         self._bus = bus
         self._pending: dict[str, asyncio.Future[HITLDecision]] = {}
+        self._slack_channel = slack_channel
+        self._slack_token = slack_token
 
     # ── Public API ────────────────────────────────────────────────────────────
 
@@ -210,9 +231,34 @@ class HITLGate:
     async def _dispatch(self, req: HITLRequest) -> HITLDecision:
         if self.channel == HITLChannel.CLI:
             return await self._cli_prompt(req)
-        # Sprint 4: Slack, email, webhook
+        if self.channel == HITLChannel.SLACK:
+            return await self._slack_prompt(req)
+        # Sprint 4: email, webhook
         log.warning("hitl_channel_fallback", channel=self.channel, fallback="cli")
         return await self._cli_prompt(req)
+
+    async def _slack_prompt(self, req: HITLRequest) -> HITLDecision:
+        """Deliver HITL request via Slack and wait for a human response."""
+        from wire.channels.slack import SlackHITLChannel
+
+        if not self._slack_channel:
+            raise ValueError(
+                "slack_channel is required when using HITLChannel.SLACK. "
+                "Pass slack_channel='#my-channel' to HITLGate, or use "
+                "channel='slack:#my-channel'."
+            )
+
+        slack = SlackHITLChannel(
+            channel=self._slack_channel,
+            token=self._slack_token,
+            timeout_minutes=self.timeout_minutes,
+            timeout_action=self.timeout_action,
+        )
+        return await slack.request(
+            req,
+            timeout_minutes=self.timeout_minutes,
+            timeout_action=self.timeout_action,
+        )
 
     async def _cli_prompt(self, req: HITLRequest) -> HITLDecision:
         """Interactive CLI prompt with timeout."""

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "wire-ai"
-version = "1.2.0"
+version = "1.3.0"
 description = "Workforce Intelligence & Reasoning Engine — framework-agnostic governance layer for autonomous enterprise AI agents"
 readme = "README.md"
 license = { text = "MIT" }
@@ -49,13 +49,15 @@ langgraph = ["langgraph>=0.2", "langchain-core>=0.2"]
 crewai    = ["crewai>=0.80"]
 autogen   = ["pyautogen>=0.4"]
 openai    = ["openai>=1.35", "openai-agents>=0.1"]
+semantic  = ["sentence-transformers>=3.0", "torch>=2.0"]
 redis     = ["redis>=5.0", "hiredis>=2.3"]          # enterprise durable state backend
 postgres  = ["asyncpg>=0.29", "psycopg[binary]>=3.1"]  # enterprise audit + state backend
 slack     = ["slack-sdk>=3.30"]                      # Slack HITL routing
 dashboard = ["textual>=0.75"]                        # full TUI dashboard (beyond Rich)
 foundry   = ["azure-ai-agents>=1.1.0", "azure-identity>=1.17"]  # Microsoft Foundry adapter
+web       = ["fastapi>=0.111", "uvicorn>=0.30"]                  # browser web dashboard
 all       = [
-    "wire-ai[langgraph,crewai,autogen,openai,redis,postgres,slack,dashboard,foundry]"
+    "wire-ai[langgraph,crewai,autogen,openai,semantic,redis,postgres,slack,dashboard,foundry,web]"
 ]
 dev = [
     "pytest>=8.2",

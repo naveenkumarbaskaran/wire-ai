@@ -1,9 +1,10 @@
 """
-wire CLI — wire status, wire audit verify, wire replay
+wire CLI — wire status, wire audit verify, wire replay, wire dashboard
 """
 
 from __future__ import annotations
 
+import asyncio
 from pathlib import Path
 
 import typer
@@ -115,3 +116,69 @@ def status() -> None:
             table.add_row(f"  {backend}", "[dim]not installed[/dim]")
 
     console.print(table)
+
+
+@app.command()
+def dashboard(
+    port: int = typer.Option(8080, "--port", "-p", help="Port to serve the dashboard on"),
+    audit_path: Path = typer.Option(
+        Path("wire-audit.jsonl"), "--audit", "-a", help="Audit JSONL file to load events from"
+    ),
+    no_browser: bool = typer.Option(False, "--no-browser", help="Don't auto-open browser"),
+) -> None:
+    """Start the web dashboard and open it in a browser."""
+    import json
+
+    from wire.visibility.dashboard import WorkforceDashboard
+    from wire.visibility.web_dashboard import WebDashboard
+
+    dash = WorkforceDashboard(workforce_name="wire-ai", audit_path=str(audit_path))
+
+    # Load events from audit file into mock dashboard state
+    if audit_path.exists():
+        try:
+            with audit_path.open() as fh:
+                for raw in fh:
+                    raw = raw.strip()
+                    if not raw:
+                        continue
+                    try:
+                        entry = json.loads(raw)
+                    except json.JSONDecodeError:
+                        continue
+                    role = entry.get("role") or entry.get("actor", "unknown")
+                    event = entry.get("event", "")
+                    data = entry.get("data") or {}
+                    if role and role != "wire":
+                        dash.update_role(
+                            role,
+                            status=data.get("status", "complete"),
+                            cost_usd=float(data.get("cost_usd", 0.0)),
+                            confidence=data.get("confidence"),
+                        )
+                    if event:
+                        dash.add_event(role or "wire", f"{event}: {str(data)[:60]}")
+        except Exception as exc:  # noqa: BLE001
+            console.print(f"[yellow]Warning: could not load audit file: {exc}[/yellow]")
+
+    web = WebDashboard(dashboard=dash, port=port)
+    url = web.url()
+    console.print(f"[bold cyan]WIRE[/bold cyan] web dashboard starting at [bold]{url}[/bold]")
+
+    async def _run() -> None:
+        await web.start()
+        if not no_browser:
+            import webbrowser
+            await asyncio.sleep(0.5)
+            webbrowser.open(url)
+        console.print("[dim]Press Ctrl+C to stop.[/dim]")
+        try:
+            while True:
+                await asyncio.sleep(1)
+        except (KeyboardInterrupt, asyncio.CancelledError):
+            pass
+        finally:
+            await web.stop()
+            console.print("[dim]Dashboard stopped.[/dim]")
+
+    asyncio.run(_run())

@@ -1,10 +1,13 @@
 """
 HIRE parser — converts plain-language intent into a list of matched RoleTemplates.
 
-Two-stage pipeline:
+Three-stage pipeline:
   1. Rule-based matcher — keyword/phrase scoring against template trigger_phrases.
      Fast, deterministic, zero cost. Confidence = overlap score (0.0–1.0).
-  2. LLM fallback (Claude) — activates when rule-based confidence < 0.70 or
+  2. Semantic matching (SBERT) — activates when rule confidence < 0.70 AND
+     sentence-transformers is installed. Cosine similarity between intent
+     embedding and template embeddings.
+  3. LLM fallback (Claude) — activates when semantic confidence < 0.65 or
      when the user sets force_llm=True. Returns structured MatchResult list.
 
 The parser never hallucinates roles — it only returns templates from the
@@ -23,8 +26,10 @@ from wire.hire.templates import ROLE_TEMPLATES, RoleTemplate, TEMPLATE_BY_NAME
 
 log = structlog.get_logger(__name__)
 
-# Confidence threshold below which LLM fallback is triggered
+# Confidence threshold below which semantic / LLM fallback is triggered
 _RULE_CONFIDENCE_THRESHOLD = 0.70
+# Confidence threshold below which LLM fallback is triggered (after semantic)
+_SEMANTIC_CONFIDENCE_THRESHOLD = 0.65
 
 
 @dataclass
@@ -32,7 +37,7 @@ class MatchResult:
     template: RoleTemplate
     confidence: float              # 0.0–1.0
     matched_phrases: list[str]
-    source: str = "rule"           # "rule" | "llm"
+    source: str = "rule"           # "rule" | "llm" | "semantic"
     order: int = 0                 # position in the assembled WorkforceGraph
 
 
@@ -41,7 +46,7 @@ class ParseResult:
     intent: str
     matches: list[MatchResult]
     confidence: float              # overall parse confidence
-    source: str = "rule"           # "rule" | "llm" | "hybrid"
+    source: str = "rule"           # "rule" | "llm" | "semantic" | "hybrid"
     warnings: list[str] = field(default_factory=list)
 
 
@@ -61,10 +66,15 @@ class HIREParser:
         extra_templates: list[RoleTemplate] | None = None,
         llm_fallback: bool = True,
         llm_model: str = "claude-haiku-4-5-20251001",
+        use_semantic: bool = True,
     ) -> None:
         self._templates = ROLE_TEMPLATES + (extra_templates or [])
         self._llm_fallback = llm_fallback
         self._llm_model = llm_model
+
+        # Lazy-initialised; is_available() handles missing sentence-transformers
+        from wire.hire.semantic import SemanticMatcher
+        self._semantic = SemanticMatcher() if use_semantic else _NullSemanticMatcher()
 
     # ── Public API ────────────────────────────────────────────────────────────
 
@@ -101,19 +111,36 @@ class HIREParser:
 
     async def parse_async(self, intent: str, force_llm: bool = False) -> ParseResult:
         """
-        Async parse — rule-based first, LLM fallback if confidence < threshold.
+        Async parse — rule-based first, semantic tier second, LLM fallback last.
         """
         result = self.parse(intent)
 
-        if (force_llm or result.confidence < _RULE_CONFIDENCE_THRESHOLD) and self._llm_fallback:
-            log.info(
-                "hire_llm_fallback",
-                rule_confidence=round(result.confidence, 2),
-                threshold=_RULE_CONFIDENCE_THRESHOLD,
-            )
-            llm_result = await self._llm_match(intent, result)
-            if llm_result:
-                return llm_result
+        if force_llm or result.confidence < _RULE_CONFIDENCE_THRESHOLD:
+            # ── Tier 2: Semantic matching ─────────────────────────────────────
+            if self._semantic.is_available():
+                log.info(
+                    "hire_semantic_fallback",
+                    rule_confidence=round(result.confidence, 2),
+                    threshold=_RULE_CONFIDENCE_THRESHOLD,
+                )
+                semantic_result = self._semantic_match(intent, result)
+                if semantic_result and semantic_result.confidence >= _SEMANTIC_CONFIDENCE_THRESHOLD:
+                    return semantic_result
+                # If semantic ran but was below threshold, pass its result to
+                # LLM evaluation (keep original rule result if semantic found nothing)
+                if semantic_result:
+                    result = semantic_result
+
+            # ── Tier 3: LLM fallback ──────────────────────────────────────────
+            if self._llm_fallback:
+                log.info(
+                    "hire_llm_fallback",
+                    rule_confidence=round(result.confidence, 2),
+                    threshold=_RULE_CONFIDENCE_THRESHOLD,
+                )
+                llm_result = await self._llm_match(intent, result)
+                if llm_result:
+                    return llm_result
 
         return result
 
@@ -173,6 +200,24 @@ class HIREParser:
             ))
 
         return results
+
+    # ── Semantic matching ─────────────────────────────────────────────────────
+
+    def _semantic_match(
+        self, intent: str, rule_result: ParseResult
+    ) -> ParseResult | None:
+        """Run SemanticMatcher and wrap results in a ParseResult."""
+        sem_matches = self._semantic.match(intent, self._templates)
+        if not sem_matches:
+            return None
+
+        overall = sum(m.confidence for m in sem_matches) / len(sem_matches)
+        return ParseResult(
+            intent=intent,
+            matches=sorted(sem_matches, key=lambda m: m.order),
+            confidence=round(max(m.confidence for m in sem_matches), 3),
+            source="semantic",
+        )
 
     # ── LLM fallback ─────────────────────────────────────────────────────────
 
@@ -260,3 +305,15 @@ Rules:
         text = re.sub(r"[^\w\s]", " ", text)
         text = re.sub(r"\s+", " ", text).strip()
         return text
+
+
+# ── Null object for use_semantic=False ───────────────────────────────────────
+
+class _NullSemanticMatcher:
+    """Drop-in replacement that always reports unavailable. Used when use_semantic=False."""
+
+    def is_available(self) -> bool:
+        return False
+
+    def match(self, intent: str, templates: list[RoleTemplate]) -> list[MatchResult]:
+        return []
