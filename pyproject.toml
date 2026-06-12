@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "wire-ai"
-version = "1.7.0"
+version = "1.7.1"
 description = "Workforce Intelligence & Reasoning Engine — framework-agnostic governance layer for autonomous enterprise AI agents"
 readme = "README.md"
 license = { text = "Apache-2.0" }
@@ -49,7 +49,7 @@ langgraph = ["langgraph>=0.2", "langchain-core>=0.2"]
 langchain  = ["langchain-core>=0.2"]
 llama-index = ["llama-index-core>=0.10"]
 crewai    = ["crewai>=0.80"]
-autogen   = ["pyautogen>=0.4"]
+autogen   = ["autogen-agentchat>=0.4", "autogen-core>=0.4"]
 openai    = ["openai>=1.35", "openai-agents>=0.1"]
 semantic  = ["sentence-transformers>=3.0", "torch>=2.0"]
 redis     = ["redis>=5.0", "hiredis>=2.3"]          # enterprise durable state backend
