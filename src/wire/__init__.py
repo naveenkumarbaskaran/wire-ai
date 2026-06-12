@@ -33,6 +33,7 @@ except ImportError:
 
 from wire.core.stream import StreamGuard, GuardedStream, StreamStallError, StreamCapExceededError, StreamStats
 from wire.core.durable_events import DurableEventBus, DeadLetter
+from wire.core.policy import PolicyEnforcer, PolicyViolationError, ToolCallContext
 from wire.enterprise.compliance import CompliancePreset, ComplianceConfig
 from wire.enterprise.rbac import RBACPolicy, Permission, Actor, PermissionDeniedError
 from wire.enterprise.multitenancy import Tenant, TenantRegistry
