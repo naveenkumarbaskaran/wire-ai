@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WIRE — Production Governance for Autonomous AI Agents</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230a0a14'/%3E%3Ctext x='16' y='22' font-family='monospace' font-size='16' font-weight='900' fill='%2322d3ee' text-anchor='middle'%3EW%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
@@ -487,8 +488,8 @@
   </a>
   <span class="tagline">Production governance for autonomous AI agents</span>
   <div class="header-badges">
-    <a href="https://github.com/navchetna/wire-ai" target="_blank" rel="noopener">
-      <img src="https://img.shields.io/github/stars/navchetna/wire-ai?style=flat&logo=github&labelColor=0a0a14&color=22d3ee" alt="GitHub Stars">
+    <a href="https://github.com/naveenkumarbaskaran/wire-ai" target="_blank" rel="noopener">
+      <img src="https://img.shields.io/github/stars/naveenkumarbaskaran/wire-ai?style=flat&logo=github&labelColor=0a0a14&color=22d3ee" alt="GitHub Stars">
     </a>
     <a href="https://pypi.org/project/wire-ai/" target="_blank" rel="noopener">
       <img src="https://img.shields.io/pypi/v/wire-ai?style=flat&logo=pypi&labelColor=0a0a14&color=818cf8" alt="PyPI version">
@@ -504,6 +505,7 @@
 <nav class="sidebar" id="sidebar">
   <div class="sidebar-section-title">Introduction</div>
   <a href="#getting-started" data-section="getting-started"><span class="dot"></span>Getting Started</a>
+  <a href="#architecture" data-section="architecture"><span class="dot"></span>Architecture</a>
 
   <div class="sidebar-section-title">Reference</div>
   <a href="#core-primitives" data-section="core-primitives"><span class="dot"></span>Core Primitives</a>
@@ -588,6 +590,63 @@ wire.AuditChain.verify("wire-audit.jsonl")</code></pre>
       <div class="feature-item"><span class="icon">&#10003;</span><span>Compliance presets</span></div>
       <div class="feature-item"><span class="icon">&#10003;</span><span>Real-time dashboard</span></div>
     </div>
+  </section>
+
+  <!-- ═══ ARCHITECTURE ═══ -->
+  <section id="architecture">
+    <div class="section-label">Introduction</div>
+    <h2>Architecture</h2>
+    <p>WIRE sits between your agent framework and production. It wraps — never replaces — your existing code.</p>
+    <div class="architecture-diagram">
+      <div class="arch-row">
+        <div class="arch-box arch-top">Your Application</div>
+      </div>
+      <div class="arch-arrow">↓  wire.deploy() / wire.hire()</div>
+      <div class="arch-layers">
+        <div class="arch-layer layer-hire">
+          <strong>HIRE Layer</strong>
+          <span>Plain-language → WorkforceGraph → 20 role templates</span>
+        </div>
+        <div class="arch-layer layer-runtime">
+          <strong>Runtime Layer</strong>
+          <span>LoopGuard · HITLGate · SLATracker · IdempotencyGuard · Budget · PolicyEnforcer</span>
+        </div>
+        <div class="arch-layer layer-visibility">
+          <strong>Visibility Layer</strong>
+          <span>AuditChain · Dashboard · DriftDetector · TimeTravel · EventStore · Metrics</span>
+        </div>
+        <div class="arch-layer layer-enterprise">
+          <strong>Enterprise Layer</strong>
+          <span>CompliancePreset · RBACPolicy · TenantRegistry · S3/PG backends</span>
+        </div>
+        <div class="arch-layer layer-adapters">
+          <strong>Framework Adapters</strong>
+          <span>LangGraph · CrewAI · AutoGen · OpenAI Agents · Microsoft Foundry</span>
+        </div>
+      </div>
+      <div class="arch-arrow">↓  governs</div>
+      <div class="arch-row">
+        <div class="arch-box arch-bottom">Your Agent Framework</div>
+      </div>
+    </div>
+    <style>
+      .architecture-diagram { margin: 2rem 0; font-family: var(--font-mono); }
+      .arch-row { display: flex; justify-content: center; margin: 0.5rem 0; }
+      .arch-box { background: #1a1a2e; border: 1px solid #334155; border-radius: 8px; padding: 0.75rem 2rem; color: #94a3b8; font-size: 0.9rem; }
+      .arch-top { border-color: #22d3ee; color: #22d3ee; }
+      .arch-bottom { border-color: #818cf8; color: #818cf8; }
+      .arch-arrow { text-align: center; color: #475569; font-size: 0.85rem; margin: 0.4rem 0; }
+      .arch-layers { border: 1px solid #1e3a5f; border-radius: 10px; overflow: hidden; margin: 0.5rem auto; max-width: 640px; }
+      .arch-layer { display: flex; flex-direction: column; padding: 0.7rem 1.2rem; border-bottom: 1px solid #1e293b; }
+      .arch-layer:last-child { border-bottom: none; }
+      .arch-layer strong { color: #e2e8f0; font-size: 0.85rem; margin-bottom: 0.2rem; }
+      .arch-layer span { color: #64748b; font-size: 0.75rem; }
+      .layer-hire { background: #0f1d2e; }
+      .layer-runtime { background: #0e1c2d; }
+      .layer-visibility { background: #0d1b2c; }
+      .layer-enterprise { background: #0c1a2b; }
+      .layer-adapters { background: #0b192a; }
+    </style>
   </section>
 
   <!-- ═══ CORE PRIMITIVES ═══ -->
