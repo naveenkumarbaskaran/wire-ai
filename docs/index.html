@@ -505,6 +505,7 @@
 <nav class="sidebar" id="sidebar">
   <div class="sidebar-section-title">Introduction</div>
   <a href="#getting-started" data-section="getting-started"><span class="dot"></span>Getting Started</a>
+  <a href="#examples" data-section="examples"><span class="dot"></span>Examples</a>
   <a href="#architecture" data-section="architecture"><span class="dot"></span>Architecture</a>
 
   <div class="sidebar-section-title">Reference</div>
@@ -1205,6 +1206,109 @@ audit_backend = PostgresAuditBackend(
 )
 
 governed = wire.deploy(graph, backend="langgraph", audit_backend=audit_backend)</code></pre>
+    </div>
+  </section>
+
+  <!-- ═══ PRODUCTION EXAMPLES ═══ -->
+  <section id="examples">
+    <div class="section-label">Examples</div>
+    <h2>Production Examples</h2>
+    <p>Real-world patterns &mdash; all runnable without API keys</p>
+
+    <style>
+      .example-card {
+        background: #0f0f1e;
+        border: 1px solid #1e1e3a;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+      }
+      .example-card:hover { border-color: #22d3ee44; }
+      .example-title { color: #e2e8f0; font-weight: 600; font-size: 1rem; margin-bottom: 0.4rem; }
+      .example-desc { color: #64748b; font-size: 0.875rem; margin-bottom: 0.75rem; }
+      .example-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.75rem; }
+      .example-tag { font-size: 0.7rem; padding: 0.2rem 0.5rem; border-radius: 4px; background: #22d3ee11; color: #22d3ee; border: 1px solid #22d3ee22; }
+    </style>
+
+    <div class="example-card">
+      <div class="example-title">ReAct Cost Monitor &mdash; <code>examples/react_agent/</code></div>
+      <div class="example-desc">
+        Full ReAct (Reasoning + Acting) loop that audits AWS costs, detects anomalies,
+        opens Jira tickets, and pages the ops team via Slack &mdash; without ever creating
+        a duplicate ticket on retry.
+      </div>
+      <div class="example-tags">
+        <span class="example-tag">LoopGuard</span>
+        <span class="example-tag">IdempotencyGuard</span>
+        <span class="example-tag">AuditChain</span>
+        <span class="example-tag">EventBus</span>
+        <span class="example-tag">Budget</span>
+      </div>
+      <div class="code-wrap">
+        <button class="copy-btn">Copy</button>
+        <pre><code class="language-bash">pip install wire-ai[langgraph]
+python examples/react_agent/run.py</code></pre>
+      </div>
+    </div>
+
+    <div class="example-card">
+      <div class="example-title">Incident Response &mdash; <code>examples/incident_response/</code></div>
+      <div class="example-desc">
+        PagerDuty-style triage agent: detect firing alerts, acknowledge them, look up the
+        runbook, and open a P1 incident &mdash; with a HITLGate that pauses execution for
+        human approval before any P1 incident is created (auto-approves after 2&nbsp;s in
+        demo mode).
+      </div>
+      <div class="example-tags">
+        <span class="example-tag">HITLGate</span>
+        <span class="example-tag">IdempotencyGuard</span>
+        <span class="example-tag">AuditChain</span>
+        <span class="example-tag">TimeoutAction.APPROVE</span>
+      </div>
+      <div class="code-wrap">
+        <button class="copy-btn">Copy</button>
+        <pre><code class="language-bash">python examples/incident_response/run.py</code></pre>
+      </div>
+    </div>
+
+    <div class="example-card">
+      <div class="example-title">Data Pipeline QA &mdash; <code>examples/data_pipeline/</code></div>
+      <div class="example-desc">
+        Data quality monitoring agent: runs rule checks on pipeline output, quarantines
+        rows that breach the failure threshold, and emails a compliance report &mdash; all
+        timed end-to-end by <code>SLATracker.measure()</code> with a 60&nbsp;s response
+        ceiling and a $1 cost cap.
+      </div>
+      <div class="example-tags">
+        <span class="example-tag">SLATracker</span>
+        <span class="example-tag">AuditChain</span>
+        <span class="example-tag">Budget($1)</span>
+        <span class="example-tag">EventBus</span>
+      </div>
+      <div class="code-wrap">
+        <button class="copy-btn">Copy</button>
+        <pre><code class="language-bash">python examples/data_pipeline/run.py</code></pre>
+      </div>
+    </div>
+
+    <div class="example-card">
+      <div class="example-title">Customer Support Triage &mdash; <code>examples/customer_support/</code></div>
+      <div class="example-desc">
+        Support triage agent: searches the knowledge base, fetches CRM history, escalates
+        premium customers (HITLGate fires), and sends an acknowledgement email &mdash;
+        decorated with <code>@wire.tool(idempotent=True)</code> so the same reply is
+        never delivered twice even if the agent retries.
+      </div>
+      <div class="example-tags">
+        <span class="example-tag">HITLGate</span>
+        <span class="example-tag">@wire.tool(idempotent=True)</span>
+        <span class="example-tag">IdempotencyGuard</span>
+        <span class="example-tag">AuditChain</span>
+      </div>
+      <div class="code-wrap">
+        <button class="copy-btn">Copy</button>
+        <pre><code class="language-bash">python examples/customer_support/run.py</code></pre>
+      </div>
     </div>
   </section>
 
